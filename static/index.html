@@ -17,6 +17,7 @@
     --orange: #FA4616;
     --teal: #0BA2B3;
     --gold: #DA9100;
+    --red: #E53E3E;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -40,7 +41,6 @@
   header img { height: 32px; }
   header h1 { font-size: 20px; margin: 0; font-weight: 600; }
   header .sub { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
-  .accent-bar { width: 40px; height: 4px; background: var(--orange); border-radius: 2px; margin-bottom: 6px; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
   @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
@@ -73,118 +73,80 @@
     font-size: 13px;
     margin-bottom: 12px;
   }
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--teal);
-  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--teal); }
   textarea { resize: vertical; min-height: 60px; }
 
   .row { display: flex; gap: 10px; }
   .row > * { flex: 1; }
 
   .dynamic-list { margin-bottom: 12px; }
-  .dynamic-item {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    align-items: flex-start;
-  }
+  .dynamic-item { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
   .dynamic-item input, .dynamic-item select, .dynamic-item textarea { margin-bottom: 0; }
   .dynamic-item .remove-btn {
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-    font-size: 13px;
-    flex: 0 0 auto;
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; cursor: pointer; font-size: 13px; flex: 0 0 auto;
   }
   .dynamic-item .remove-btn:hover { color: var(--orange); border-color: var(--orange); }
 
   .add-btn {
-    background: transparent;
-    color: var(--teal);
-    border: 1px dashed var(--teal);
-    border-radius: 6px;
-    padding: 9px;
-    width: 100%;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
+    background: transparent; color: var(--teal);
+    border: 1px dashed var(--teal); border-radius: 6px;
+    padding: 9px; width: 100%; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 500;
   }
   .add-btn:hover { background: rgba(11, 162, 179, 0.08); }
 
   .btn-primary {
-    background: var(--orange);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 13px 24px;
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
+    background: var(--orange); color: white; border: none; border-radius: 8px;
+    padding: 13px 24px; font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; width: 100%;
   }
   .btn-primary:hover { background: #E6400E; }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .btn-secondary {
-    background: transparent;
-    color: var(--teal);
-    border: 1px solid var(--teal);
-    border-radius: 8px;
-    padding: 11px 20px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    width: 100%;
+    background: transparent; color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 8px;
+    padding: 11px 20px; font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer; width: 100%;
   }
   .btn-secondary:hover { background: rgba(11, 162, 179, 0.08); }
+  .btn-secondary-sm { padding: 7px 14px; font-size: 12px; width: auto; }
 
-  .theme-toggle {
-    display: inline-flex;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+  .textarea-wrap { position: relative; }
+  .mic-btn {
+    position: absolute; bottom: 18px; right: 10px;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: none; background: var(--teal); color: white;
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
   }
-  .theme-toggle button {
-    background: transparent;
-    color: var(--text-muted);
-    border: none;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-  }
-  .theme-toggle button.active {
-    background: var(--teal);
-    color: white;
+  .mic-btn:hover { background: #099aa8; transform: scale(1.08); }
+  .mic-btn.active { background: var(--red); animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.75; }
   }
 
-  .status {
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--text-muted);
-    min-height: 18px;
-  }
+  .status { margin-top: 10px; font-size: 12px; color: var(--text-muted); min-height: 18px; }
   .status.err { color: var(--orange); }
+  .status.warn { color: var(--gold); }
 
   .hint { font-size: 11px; color: var(--text-dim); margin-top: -8px; margin-bottom: 12px; font-style: italic; }
 
+  .char-count { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: -10px; margin-bottom: 10px; }
+  .char-count.warn { color: var(--gold); }
+  .char-count.err { color: var(--orange); }
+
   .capabilities-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .cap-chip {
-    background: var(--bg);
-    border: 1px solid var(--teal);
-    color: var(--teal);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
+    background: var(--bg); border: 1px solid var(--teal); color: var(--teal);
+    padding: 4px 10px; border-radius: 20px; font-size: 11px;
   }
+
+  .dir-select { flex: 0 0 92px; }
 
   footer { margin-top: 40px; text-align: center; color: var(--text-dim); font-size: 11px; }
 </style>
@@ -196,25 +158,23 @@
     <div class="brand">
       <img src="/uipath-logo.svg" alt="UiPath"/>
       <div>
-        <div class="accent-bar"></div>
         <h1>Agentic Win Story Generator</h1>
         <div class="sub">Generates a single-slide agentic use case deck from notes or filled fields.</div>
       </div>
-    </div>
-    <div class="theme-toggle" role="group" aria-label="Theme">
-      <button id="themeDark" class="active" type="button">Dark</button>
-      <button id="themeLight" type="button">Light</button>
     </div>
   </header>
 
   <div class="grid">
 
-    <!-- LEFT COLUMN: AI intake + high-level -->
+    <!-- LEFT COLUMN -->
     <div>
       <div class="card">
-        <h2>AI intake</h2>
-        <label for="rawText">Paste your rough notes — the AI will structure them</label>
-        <textarea id="rawText" rows="7" placeholder="e.g. HCA Healthcare — denials indexing automation. Claims come in as unstructured PDFs. Agents classify, bots extract fields via Doc Understanding, bots poll payor portals, humans approve appeals. Outcomes: $558K revenue released, $837K processing cost reduction, 90% of workflow automated. Problem context: 12%+ claims denied, $181 per rework..."></textarea>
+        <h2>Describe the win story</h2>
+        <div class="hint">Hit the mic and start talking, or paste your notes. Include customer, problem, outcomes, capabilities, and process flow.</div>
+        <div class="textarea-wrap">
+          <textarea id="rawText" rows="8" placeholder="e.g. HCA Healthcare - denials indexing automation. Claims arrive as unstructured PDFs. Agents classify, bots extract fields via Doc Understanding, bots poll payor portals, humans approve exceptions. Outcomes: $558K revenue released, $837K cost reduction, 90% automated. Context: 12%+ claims denied, $181 rework cost per claim..."></textarea>
+          <button class="mic-btn" type="button" onclick="toggleSpeech('rawText', this)" title="Voice dictation">&#127908;</button>
+        </div>
         <button id="extractBtn" class="btn-secondary" type="button">Extract to form</button>
         <div id="extractStatus" class="status"></div>
       </div>
@@ -226,10 +186,10 @@
           <div><label>Function</label><input id="bc1" type="text" placeholder="Revenue cycle management"/></div>
           <div><label>Use case name</label><input id="bc2" type="text" placeholder="Denials intake & appeals"/></div>
         </div>
-        <label>Title</label>
-        <input id="title" type="text" placeholder="Unblocking appeals by automating the indexing bottleneck"/>
+        <label>Title <span style="color:var(--text-dim); font-weight:400">(short - 3-6 words is ideal)</span></label>
+        <input id="title" type="text" placeholder="Medical claim adjudication" maxlength="90"/>
         <label>Subtitle</label>
-        <input id="subtitle" type="text" placeholder="Agents reason over denials; bots execute; humans approve the edge cases."/>
+        <input id="subtitle" type="text" placeholder="Agents reason over denials; bots execute; humans approve the edge cases." maxlength="140"/>
         <label>Company</label>
         <input id="company" type="text" placeholder="HCA Healthcare"/>
       </div>
@@ -237,7 +197,11 @@
       <div class="card">
         <h2>Problem</h2>
         <label>Description</label>
-        <textarea id="problemDesc" rows="3" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
+        <div class="textarea-wrap">
+          <textarea id="problemDesc" rows="3" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
+          <button class="mic-btn" type="button" onclick="toggleSpeech('problemDesc', this)" title="Voice dictation">&#127908;</button>
+        </div>
+        <div id="problemDescCount" class="char-count"></div>
         <label>Problem metrics <span style="color:var(--text-dim); font-weight: 400">(0-4, optional)</span></label>
         <div id="problemStats" class="dynamic-list"></div>
         <button type="button" class="add-btn" data-add="problemStats">+ Add metric</button>
@@ -246,39 +210,54 @@
       <div class="card">
         <h2>Solution</h2>
         <label>Description</label>
-        <textarea id="solutionDesc" rows="3" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
-        <label>Capabilities <span style="color:var(--text-dim); font-weight: 400">(comma-separated; auto-wrap in slide)</span></label>
+        <div class="textarea-wrap">
+          <textarea id="solutionDesc" rows="3" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
+          <button class="mic-btn" type="button" onclick="toggleSpeech('solutionDesc', this)" title="Voice dictation">&#127908;</button>
+        </div>
+        <div id="solutionDescCount" class="char-count"></div>
+        <label>Capabilities <span style="color:var(--text-dim); font-weight: 400">(comma-separated, auto-wrap in slide)</span></label>
         <input id="capabilitiesInput" type="text" placeholder="Agents, Unattended Robots, Doc Understanding, Action Center"/>
         <div id="capabilitiesPreview" class="capabilities-tags"></div>
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: steps, outcomes, impact -->
+    <!-- RIGHT COLUMN -->
     <div>
       <div class="card">
         <h2>What the automation does &mdash; steps</h2>
-        <div class="hint">3-9 steps. AGENT (orange) / BOT (teal) / HUMAN (gold). Keep descriptions short (3-7 words).</div>
+        <div class="hint">3-9 steps. BOT (orange) / AGENT (teal) / HUMAN (gold). 3-7 words each.</div>
+
+        <label style="margin-top:8px">Describe the process <span style="color:var(--text-dim); font-weight:400">(optional)</span> &mdash; we'll extract steps for you</label>
+        <div class="textarea-wrap">
+          <textarea id="processDesc" rows="4" placeholder="e.g. A bot pulls inbound denials and parses each file. An agent classifies by denial code and reasons over root cause. A bot extracts all key fields. A bot polls the payor portal for status. A human approves exceptions and signs the final appeal."></textarea>
+          <button class="mic-btn" type="button" onclick="toggleSpeech('processDesc', this)" title="Voice dictation">&#127908;</button>
+        </div>
+        <button id="extractStepsBtn" class="btn-secondary btn-secondary-sm" type="button" style="margin-bottom:14px">Extract steps with AI</button>
+        <div id="extractStepsStatus" class="status"></div>
+
         <div id="steps" class="dynamic-list"></div>
         <button type="button" class="add-btn" data-add="steps">+ Add step</button>
       </div>
 
       <div class="card">
         <h2>Measured outcomes</h2>
-        <div class="hint">1-5 big stat tiles. Each tile gets a large number and short label.</div>
+        <div class="hint">1-5 big stat tiles. Each tile: large value + short label.</div>
         <div id="outcomes" class="dynamic-list"></div>
         <button type="button" class="add-btn" data-add="outcomes">+ Add outcome</button>
       </div>
 
       <div class="card">
         <h2>Attributable impact <span style="color:var(--text-dim); font-weight: 400; font-size: 11px">(optional)</span></h2>
-        <div class="hint">Directional metrics directly moved. Use arrows and middle dots (no bullets).</div>
-        <textarea id="attributable" rows="2" placeholder="&#8595; Days in AR &#183; &#8595; Touches per claim &#183; &#8595; Cycle time &#183; &#8593; First-pass yield"></textarea>
+        <div class="hint">Directional metrics directly moved. Pick up/down per item.</div>
+        <div id="attributable" class="dynamic-list"></div>
+        <button type="button" class="add-btn" data-add="attributable">+ Add metric</button>
       </div>
 
       <div class="card">
         <h2>Downstream impact <span style="color:var(--text-dim); font-weight: 400; font-size: 11px">(optional)</span></h2>
         <div class="hint">Second-order effects beyond direct outputs.</div>
-        <textarea id="downstream" rows="2" placeholder="&#8593; Staff retention &#183; &#8593; Patient NPS &#183; &#8593; Audit readiness &#183; &#8595; Write-offs"></textarea>
+        <div id="downstream" class="dynamic-list"></div>
+        <button type="button" class="add-btn" data-add="downstream">+ Add metric</button>
       </div>
 
       <button id="generateBtn" class="btn-primary" type="button">Generate .pptx</button>
@@ -287,33 +266,25 @@
 
   </div>
 
-  <footer>
-    UiPath Agentic Win Story Generator &middot; Based on Agent Use Case Template v10
-  </footer>
+  <footer>UiPath Agentic Win Story Generator &middot; Single-slide output &middot; Light theme</footer>
 </div>
 
 <script>
-  let theme = 'dark';
-  document.getElementById('themeDark').onclick = () => { theme = 'dark'; updateThemeButtons(); };
-  document.getElementById('themeLight').onclick = () => { theme = 'light'; updateThemeButtons(); };
-  function updateThemeButtons() {
-    document.getElementById('themeDark').classList.toggle('active', theme === 'dark');
-    document.getElementById('themeLight').classList.toggle('active', theme === 'light');
-  }
+  const SLIDE_THEME = 'light';
 
   function escapeAttr(s) { return String(s || '').replace(/"/g,'&quot;'); }
   function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
 
   function buildRow_problemStats(value, label) {
     return '<div class="dynamic-item" data-list="problemStats">' +
-      '<input type="text" placeholder="Value (e.g. 12%+)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 26%"/>' +
+      '<input type="text" placeholder="Value (e.g. 12%+)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 28%"/>' +
       '<input type="text" placeholder="Label (e.g. claims denied annually)" value="' + escapeAttr(label) + '" data-field="label"/>' +
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
   function buildRow_outcomes(value, label) {
     return '<div class="dynamic-item" data-list="outcomes">' +
-      '<input type="text" placeholder="Value (e.g. $558K)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 26%"/>' +
+      '<input type="text" placeholder="Value (e.g. $558K)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 28%"/>' +
       '<input type="text" placeholder="Label (e.g. revenue released)" value="' + escapeAttr(label) + '" data-field="label"/>' +
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
@@ -330,17 +301,35 @@
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
+  function buildRow_impact(listName, direction, text) {
+    direction = direction || 'down';
+    return '<div class="dynamic-item" data-list="' + listName + '">' +
+      '<select data-field="direction" class="dir-select">' +
+        '<option value="down"' + (direction==='down'?' selected':'') + '>&darr; Down</option>' +
+        '<option value="up"'   + (direction==='up'?' selected':'')   + '>&uarr; Up</option>' +
+      '</select>' +
+      '<input type="text" placeholder="Metric (e.g. Days in AR)" value="' + escapeAttr(text) + '" data-field="text"/>' +
+      '<button type="button" class="remove-btn">x</button>' +
+    '</div>';
+  }
+  function buildRow_attributable(direction, text) { return buildRow_impact('attributable', direction, text); }
+  function buildRow_downstream(direction, text)   { return buildRow_impact('downstream',   direction, text); }
 
   function addRow(listName, a, b) {
     const el = document.getElementById(listName);
-    const builder = { problemStats: buildRow_problemStats, outcomes: buildRow_outcomes, steps: buildRow_steps }[listName];
+    const builder = {
+      problemStats: buildRow_problemStats,
+      outcomes: buildRow_outcomes,
+      steps: buildRow_steps,
+      attributable: buildRow_attributable,
+      downstream: buildRow_downstream,
+    }[listName];
     el.insertAdjacentHTML('beforeend', builder(a, b));
   }
 
   document.querySelectorAll('.add-btn').forEach(btn => {
     btn.onclick = () => addRow(btn.dataset.add);
   });
-
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
       e.target.closest('.dynamic-item').remove();
@@ -353,6 +342,20 @@
     const list = raw.split(',').map(s => s.trim()).filter(Boolean);
     document.getElementById('capabilitiesPreview').innerHTML =
       list.map(c => '<span class="cap-chip">' + escapeHtml(c) + '</span>').join('');
+  }
+
+  function countChars(fieldId, counterId, softMax, hardMax) {
+    const el = document.getElementById(fieldId);
+    const counter = document.getElementById(counterId);
+    const tick = () => {
+      const n = el.value.length;
+      counter.textContent = n + ' / ' + softMax + ' rec.';
+      counter.classList.remove('warn','err');
+      if (n > hardMax) counter.classList.add('err');
+      else if (n > softMax) counter.classList.add('warn');
+    };
+    el.addEventListener('input', tick);
+    tick();
   }
 
   function collectData() {
@@ -372,9 +375,9 @@
       capabilities: document.getElementById('capabilitiesInput').value.split(',').map(s => s.trim()).filter(Boolean),
       steps: collectListItems('steps', ['role','description']),
       outcomes: collectListItems('outcomes', ['value','label']),
-      attributable: document.getElementById('attributable').value.trim() || null,
-      downstream: document.getElementById('downstream').value.trim() || null,
-      theme: theme,
+      attributable: collectListItems('attributable', ['direction','text']),
+      downstream: collectListItems('downstream', ['direction','text']),
+      theme: SLIDE_THEME,
     };
   }
 
@@ -386,7 +389,8 @@
         const el = row.querySelector('[data-field="' + f + '"]');
         obj[f] = el ? el.value.trim() : '';
       });
-      if (Object.values(obj).some(v => v)) items.push(obj);
+      const hasContent = fields.filter(f => f !== 'direction').some(f => obj[f]);
+      if (hasContent) items.push(obj);
     });
     return items;
   }
@@ -400,14 +404,18 @@
     if (d.title) document.getElementById('title').value = d.title;
     if (d.subtitle) document.getElementById('subtitle').value = d.subtitle;
     if (d.company) document.getElementById('company').value = d.company;
-    if (d.problem_desc) document.getElementById('problemDesc').value = d.problem_desc;
-    if (d.solution_desc) document.getElementById('solutionDesc').value = d.solution_desc;
+    if (d.problem_desc) {
+      document.getElementById('problemDesc').value = d.problem_desc;
+      document.getElementById('problemDesc').dispatchEvent(new Event('input'));
+    }
+    if (d.solution_desc) {
+      document.getElementById('solutionDesc').value = d.solution_desc;
+      document.getElementById('solutionDesc').dispatchEvent(new Event('input'));
+    }
     if (d.capabilities) {
       document.getElementById('capabilitiesInput').value = d.capabilities.join(', ');
       updateCapabilitiesPreview();
     }
-    if (d.attributable) document.getElementById('attributable').value = d.attributable;
-    if (d.downstream) document.getElementById('downstream').value = d.downstream;
 
     document.getElementById('problemStats').innerHTML = '';
     (d.problem_stats || []).forEach(s => addRow('problemStats', s.value, s.label));
@@ -418,9 +426,30 @@
     document.getElementById('outcomes').innerHTML = '';
     (d.outcomes || []).forEach(o => addRow('outcomes', o.value, o.label));
 
-    if (d.theme) {
-      theme = d.theme;
-      updateThemeButtons();
+    document.getElementById('attributable').innerHTML = '';
+    if (Array.isArray(d.attributable)) {
+      d.attributable.forEach(item => addRow('attributable', item.direction || 'down', item.text || ''));
+    } else if (typeof d.attributable === 'string' && d.attributable.trim()) {
+      d.attributable.split('·').forEach(part => {
+        const t = part.trim();
+        if (!t) return;
+        const dir = t.startsWith('\u2191') ? 'up' : 'down';
+        const clean = t.replace(/^[\u2191\u2193]\s*/, '').trim();
+        if (clean) addRow('attributable', dir, clean);
+      });
+    }
+
+    document.getElementById('downstream').innerHTML = '';
+    if (Array.isArray(d.downstream)) {
+      d.downstream.forEach(item => addRow('downstream', item.direction || 'up', item.text || ''));
+    } else if (typeof d.downstream === 'string' && d.downstream.trim()) {
+      d.downstream.split('·').forEach(part => {
+        const t = part.trim();
+        if (!t) return;
+        const dir = t.startsWith('\u2193') ? 'down' : 'up';
+        const clean = t.replace(/^[\u2191\u2193]\s*/, '').trim();
+        if (clean) addRow('downstream', dir, clean);
+      });
     }
   }
 
@@ -440,6 +469,29 @@
       const data = await resp.json();
       populateForm(data);
       status.textContent = 'Form populated. Review and tweak before generating.';
+    } catch (e) {
+      status.textContent = 'Error: ' + e.message;
+      status.classList.add('err');
+    }
+  };
+
+  document.getElementById('extractStepsBtn').onclick = async () => {
+    const text = document.getElementById('processDesc').value.trim();
+    const status = document.getElementById('extractStepsStatus');
+    if (!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
+    status.textContent = 'Extracting steps...';
+    status.classList.remove('err');
+    try {
+      const resp = await fetch('/extract-steps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text }),
+      });
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Step extract failed'); }
+      const data = await resp.json();
+      document.getElementById('steps').innerHTML = '';
+      (data.steps || []).forEach(s => addRow('steps', (s.role || 'AGENT').toUpperCase(), s.description || ''));
+      status.textContent = 'Steps populated.';
     } catch (e) {
       status.textContent = 'Error: ' + e.message;
       status.classList.add('err');
@@ -476,20 +528,49 @@
     }
   };
 
+  // Voice dictation
+  let recognition = null;
+  let activeMicBtn = null;
+  function toggleSpeech(textareaId, btn) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Voice dictation requires Chrome or Edge.'); return; }
+    if (recognition && activeMicBtn === btn) { recognition.stop(); return; }
+    if (recognition) { recognition.stop(); }
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    const textarea = document.getElementById(textareaId);
+    const startValue = textarea.value;
+    let finalTranscript = '';
+    recognition.onresult = (ev) => {
+      let interim = '';
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const txt = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalTranscript += txt;
+        else interim += txt;
+      }
+      textarea.value = startValue + (startValue && !startValue.endsWith(' ') ? ' ' : '') + finalTranscript + interim;
+      textarea.dispatchEvent(new Event('input'));
+    };
+    recognition.onerror = () => { btn.classList.remove('active'); activeMicBtn = null; };
+    recognition.onend = () => { btn.classList.remove('active'); activeMicBtn = null; recognition = null; };
+    recognition.start();
+    btn.classList.add('active');
+    activeMicBtn = btn;
+  }
+
+  // Seed starter rows + char counters
   document.addEventListener('DOMContentLoaded', () => {
-    addRow('problemStats');
-    addRow('problemStats');
-    addRow('problemStats');
-    addRow('steps', 'AGENT');
-    addRow('steps', 'BOT');
-    addRow('steps', 'AGENT');
-    addRow('steps', 'BOT');
-    addRow('steps', 'HUMAN');
-    addRow('outcomes');
-    addRow('outcomes');
-    addRow('outcomes');
+    countChars('problemDesc',  'problemDescCount',  240, 320);
+    countChars('solutionDesc', 'solutionDescCount', 220, 320);
+    addRow('problemStats'); addRow('problemStats'); addRow('problemStats');
+    addRow('steps', 'AGENT'); addRow('steps', 'BOT'); addRow('steps', 'AGENT');
+    addRow('steps', 'BOT'); addRow('steps', 'HUMAN');
+    addRow('outcomes'); addRow('outcomes'); addRow('outcomes');
+    addRow('attributable', 'down'); addRow('attributable', 'down'); addRow('attributable', 'up');
+    addRow('downstream', 'up'); addRow('downstream', 'up');
   });
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
