@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<\!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -28,95 +28,63 @@
     font-size: 14px;
     line-height: 1.45;
   }
-  .container { max-width: 1440px; margin: 0 auto; padding: 28px 32px 80px; }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 24px;
-    margin-bottom: 28px;
+
+  /* topbar */
+  .topbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 24px;
     border-bottom: 1px solid var(--border);
-  }
-  header .brand { display: flex; align-items: center; gap: 14px; }
-  header img { height: 32px; }
-  header h1 { font-size: 20px; margin: 0; font-weight: 600; }
-  header .sub { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
-
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-  @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
-
-  .card {
-    background: var(--panel);
-    border-radius: 10px;
-    padding: 22px;
-    margin-bottom: 16px;
-  }
-  .card h2 {
-    font-size: 13px;
-    color: var(--teal);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin: 0 0 14px;
-    font-weight: 600;
-  }
-
-  label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-
-  input[type=text], textarea, select {
-    width: 100%;
     background: var(--bg);
-    color: var(--text);
+  }
+  .topbar img { height: 22px; }
+  .topbar-sep { color: var(--text-dim); margin: 0 4px; }
+  .topbar-title { font-size: 14px; font-weight: 600; }
+  .topbar-spacer { flex: 1; }
+  .topbar-action {
+    background: transparent; color: var(--teal);
+    border: 1px solid var(--teal); border-radius: 6px;
+    padding: 6px 14px; font-family: inherit; font-size: 12px;
+    cursor: pointer; font-weight: 500;
+  }
+  .topbar-action:hover { background: rgba(11,162,179,0.08); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  /* intake hero */
+  .intake-hero {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 26px 28px;
+    margin-bottom: 18px;
+  }
+  .intake-hero h2 {
+    margin: 0 0 6px; font-size: 20px; font-weight: 600; color: var(--text);
+  }
+  .intake-hero p { margin: 0 0 10px; color: var(--text-muted); font-size: 13px; }
+  .chip {
+    display: inline-block;
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 9px 11px;
-    font-family: inherit;
-    font-size: 13px;
-    margin-bottom: 12px;
+    color: var(--text-muted);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 500;
   }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--teal); }
-  textarea { resize: vertical; min-height: 60px; }
-
-  .row { display: flex; gap: 10px; }
-  .row > * { flex: 1; }
-
-  .dynamic-list { margin-bottom: 12px; }
-  .dynamic-item { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
-  .dynamic-item input, .dynamic-item select, .dynamic-item textarea { margin-bottom: 0; }
-  .dynamic-item .remove-btn {
-    background: transparent; color: var(--text-dim);
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: 8px 10px; cursor: pointer; font-size: 13px; flex: 0 0 auto;
-  }
-  .dynamic-item .remove-btn:hover { color: var(--orange); border-color: var(--orange); }
-
-  .add-btn {
-    background: transparent; color: var(--teal);
-    border: 1px dashed var(--teal); border-radius: 6px;
-    padding: 9px; width: 100%; cursor: pointer;
-    font-family: inherit; font-size: 13px; font-weight: 500;
-  }
-  .add-btn:hover { background: rgba(11, 162, 179, 0.08); }
-
-  .btn-primary {
-    background: var(--orange); color: white; border: none; border-radius: 8px;
-    padding: 13px 24px; font-family: inherit; font-size: 15px; font-weight: 600;
-    cursor: pointer; width: 100%;
-  }
-  .btn-primary:hover { background: #E6400E; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .btn-secondary {
-    background: transparent; color: var(--teal);
-    border: 1px solid var(--teal); border-radius: 8px;
-    padding: 11px 20px; font-family: inherit; font-size: 14px; font-weight: 500;
-    cursor: pointer; width: 100%;
-  }
-  .btn-secondary:hover { background: rgba(11, 162, 179, 0.08); }
-  .btn-secondary-sm { padding: 7px 14px; font-size: 12px; width: auto; }
 
   .textarea-wrap { position: relative; }
+  .intake-textarea {
+    width: 100%; min-height: 160px; padding: 12px 14px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: 13px; line-height: 1.5;
+    outline: none; transition: border-color .15s; resize: vertical;
+  }
+  .intake-textarea:focus { border-color: var(--teal); }
+  .intake-textarea::placeholder { color: var(--text-dim); }
+
   .mic-btn {
-    position: absolute; bottom: 18px; right: 10px;
+    position: absolute; bottom: 10px; right: 10px;
     width: 34px; height: 34px; border-radius: 50%;
     border: none; background: var(--teal); color: white;
     font-size: 14px; cursor: pointer;
@@ -130,143 +98,410 @@
     50% { transform: scale(1.15); opacity: 0.75; }
   }
 
-  .status { margin-top: 10px; font-size: 12px; color: var(--text-muted); min-height: 18px; }
-  .status.err { color: var(--orange); }
-  .status.warn { color: var(--gold); }
+  .intake-actions {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 12px;
+  }
+  .intake-status { font-size: 12px; color: var(--text-muted); flex: 1; }
+  .intake-status.err { color: var(--orange); }
 
-  .hint { font-size: 11px; color: var(--text-dim); margin-top: -8px; margin-bottom: 12px; font-style: italic; }
+  .btn {
+    border: none; border-radius: 8px;
+    font-family: inherit; font-weight: 600; cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-teal {
+    background: var(--teal); color: white;
+    padding: 10px 18px; font-size: 13px;
+  }
+  .btn-teal:hover { background: #099aa8; }
+  .btn-teal.sm { padding: 7px 14px; font-size: 12px; }
+  .btn-red {
+    background: var(--orange); color: white;
+    padding: 13px 26px; font-size: 15px;
+  }
+  .btn-red:hover { background: #E6400E; }
+  .btn-outline {
+    background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 12px 20px; font-size: 13px; font-weight: 500;
+  }
+  .btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
 
-  .char-count { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: -10px; margin-bottom: 10px; }
+  .or-divider {
+    display: flex; align-items: center; gap: 14px;
+    margin: 20px 0 14px; color: var(--text-dim); font-size: 11px;
+  }
+  .or-divider::before, .or-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* collapsible cards */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .card-hd {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-hd:hover { background: var(--panel-2); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .card-chev {
+    margin-left: auto; color: var(--text-dim);
+    transition: transform .2s;
+    font-size: 10px;
+  }
+  .card.open .card-chev { transform: rotate(180deg); }
+  .card-bd {
+    display: none;
+    padding: 4px 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .card.open .card-bd { display: block; }
+
+  .badge {
+    font-size: 9px; padding: 2px 7px; border-radius: 3px;
+    font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge.req { background: rgba(250,70,22,0.15); color: var(--orange); }
+  .badge.opt { background: rgba(92,116,128,0.2); color: var(--text-muted); }
+
+  .filled-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+    transition: background .2s;
+  }
+  .filled-dot.on { background: var(--teal); }
+
+  /* fields */
+  .frow {
+    display: grid; gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 14px;
+  }
+  .frow.one { grid-template-columns: 1fr; }
+  .frow.three { grid-template-columns: 1fr 1fr 1fr; }
+  .field label {
+    display: block; font-size: 11px; color: var(--text-muted);
+    font-weight: 500; margin-bottom: 4px;
+  }
+  .field .hint, .hint {
+    font-size: 10px; color: var(--text-dim); font-weight: 400; font-style: italic;
+  }
+  .req-star { color: var(--orange); margin-left: 2px; }
+  input[type=text], textarea, select {
+    width: 100%;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 9px 11px;
+    font-family: inherit; font-size: 13px;
+    outline: none; transition: border-color .15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--teal); }
+  input::placeholder, textarea::placeholder { color: var(--text-dim); }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+
+  /* dynamic lists */
+  .dynamic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .dynamic-item { display: flex; gap: 8px; align-items: center; }
+  .dynamic-item input, .dynamic-item select { margin-bottom: 0; }
+  .dynamic-item .remove-btn {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; cursor: pointer; font-size: 13px; flex: 0 0 auto;
+  }
+  .dynamic-item .remove-btn:hover { color: var(--orange); border-color: var(--orange); }
+  .add-stat, .add-btn {
+    background: transparent; color: var(--teal);
+    border: 1px dashed var(--teal); border-radius: 6px;
+    padding: 8px; width: 100%; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    margin-top: 10px;
+  }
+  .add-stat:hover, .add-btn:hover { background: rgba(11,162,179,0.08); }
+
+  /* capabilities chips preview */
+  .capabilities-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .cap-chip {
+    background: var(--bg); border: 1px solid var(--teal); color: var(--teal);
+    padding: 3px 10px; border-radius: 14px; font-size: 11px;
+  }
+
+  /* char counter */
+  .char-count { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 4px; }
   .char-count.warn { color: var(--gold); }
   .char-count.err { color: var(--orange); }
 
-  .capabilities-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .cap-chip {
-    background: var(--bg); border: 1px solid var(--teal); color: var(--teal);
-    padding: 4px 10px; border-radius: 20px; font-size: 11px;
+  /* impact preview */
+  .impact-preview {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; margin-top: 6px;
+    font-size: 12px; color: var(--text-muted); font-style: italic;
+    min-height: 22px;
   }
 
-  .dir-select { flex: 0 0 92px; }
-
-  footer { margin-top: 40px; text-align: center; color: var(--text-dim); font-size: 11px; }
+  /* form actions */
+  .form-actions {
+    display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;
+  }
+  .form-actions .btn-red { flex: 1 1 auto; min-width: 200px; }
+  .form-gen-status { width: 100%; font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .form-gen-status.err { color: var(--orange); }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <header>
-    <div class="brand">
-      <img src="/uipath-logo.svg" alt="UiPath"/>
-      <div>
-        <h1>Agentic Win Story Generator</h1>
-        <div class="sub">Generates a single-slide agentic use case deck from notes or filled fields.</div>
-      </div>
+<div class="topbar">
+  <img src="/uipath-logo.svg" alt="UiPath"/>
+  <span class="topbar-sep">|</span>
+  <span class="topbar-title">Agentic Win Story Generator</span>
+  <span class="topbar-spacer"></span>
+  <button class="topbar-action" onclick="clearAll()">New Story</button>
+</div>
+
+<div class="page">
+
+  <\!-- AI INTAKE -->
+  <div class="intake-hero">
+    <h2>Describe the win story</h2>
+    <p>Hit the mic and start talking, or paste your notes. Include as much detail as you can.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+      <span class="chip">Customer name</span>
+      <span class="chip">Use case</span>
+      <span class="chip">Problem</span>
+      <span class="chip">Problem metrics</span>
+      <span class="chip">Solution</span>
+      <span class="chip">Capabilities used</span>
+      <span class="chip">Process steps</span>
+      <span class="chip">Measured outcomes</span>
+      <span class="chip">Attributable impact</span>
+      <span class="chip">Downstream impact</span>
     </div>
-  </header>
-
-  <div class="grid">
-
-    <!-- LEFT COLUMN -->
-    <div>
-      <div class="card">
-        <h2>Describe the win story</h2>
-        <div class="hint">Hit the mic and start talking, or paste your notes. Include customer, problem, outcomes, capabilities, and process flow.</div>
-        <div class="textarea-wrap">
-          <textarea id="rawText" rows="8" placeholder="e.g. HCA Healthcare - denials indexing automation. Claims arrive as unstructured PDFs. Agents classify, bots extract fields via Doc Understanding, bots poll payor portals, humans approve exceptions. Outcomes: $558K revenue released, $837K cost reduction, 90% automated. Context: 12%+ claims denied, $181 rework cost per claim..."></textarea>
-          <button class="mic-btn" type="button" onclick="toggleSpeech('rawText', this)" title="Voice dictation">&#127908;</button>
-        </div>
-        <button id="extractBtn" class="btn-secondary" type="button">Extract to form</button>
-        <div id="extractStatus" class="status"></div>
-      </div>
-
-      <div class="card">
-        <h2>Header</h2>
-        <div class="row">
-          <div><label>Industry</label><input id="bc0" type="text" placeholder="Healthcare"/></div>
-          <div><label>Function</label><input id="bc1" type="text" placeholder="Revenue cycle management"/></div>
-          <div><label>Use case name</label><input id="bc2" type="text" placeholder="Denials intake & appeals"/></div>
-        </div>
-        <label>Title <span style="color:var(--text-dim); font-weight:400">(short - 3-6 words is ideal)</span></label>
-        <input id="title" type="text" placeholder="Medical claim adjudication" maxlength="90"/>
-        <label>Subtitle</label>
-        <input id="subtitle" type="text" placeholder="Agents reason over denials; bots execute; humans approve the edge cases." maxlength="140"/>
-        <label>Company</label>
-        <input id="company" type="text" placeholder="HCA Healthcare"/>
-      </div>
-
-      <div class="card">
-        <h2>Problem</h2>
-        <label>Description</label>
-        <div class="textarea-wrap">
-          <textarea id="problemDesc" rows="3" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
-          <button class="mic-btn" type="button" onclick="toggleSpeech('problemDesc', this)" title="Voice dictation">&#127908;</button>
-        </div>
-        <div id="problemDescCount" class="char-count"></div>
-        <label>Problem metrics <span style="color:var(--text-dim); font-weight: 400">(0-4, optional)</span></label>
-        <div id="problemStats" class="dynamic-list"></div>
-        <button type="button" class="add-btn" data-add="problemStats">+ Add metric</button>
-      </div>
-
-      <div class="card">
-        <h2>Solution</h2>
-        <label>Description</label>
-        <div class="textarea-wrap">
-          <textarea id="solutionDesc" rows="3" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
-          <button class="mic-btn" type="button" onclick="toggleSpeech('solutionDesc', this)" title="Voice dictation">&#127908;</button>
-        </div>
-        <div id="solutionDescCount" class="char-count"></div>
-        <label>Capabilities <span style="color:var(--text-dim); font-weight: 400">(comma-separated, auto-wrap in slide)</span></label>
-        <input id="capabilitiesInput" type="text" placeholder="Agents, Unattended Robots, Doc Understanding, Action Center"/>
-        <div id="capabilitiesPreview" class="capabilities-tags"></div>
-      </div>
+    <div class="textarea-wrap">
+      <textarea class="intake-textarea" id="rawText" placeholder="e.g. Anthem - medical claim adjudication. High-volume inbound claims require manual review across clinical codes, member eligibility, and provider contracts. $3.4M annual cost, 12 days avg processing, high backlog. UiPath Agents classify and triage claims by clinical codes and risk; Unattended Robots verify eligibility and contract terms; humans adjudicate exceptions. Capabilities: Agents, Unattended Robots, Action Center, Doc Understanding. Steps: bot ingests docs, agent classifies, bot verifies eligibility, bot validates contracts, agent routes routine claims, human adjudicates exceptions, bot issues reimbursement. Outcomes: $3.4M annual savings, 10 days cycle reduction, 2 days new avg processing. Impact: reduced claims queue days, reduced manual review touches, improved first-pass approval, improved provider satisfaction. Downstream: higher staff retention, better member and provider NPS, reduced compliance risk."></textarea>
+      <button class="mic-btn" type="button" onclick="toggleSpeech('rawText', this)" title="Voice dictation">&#127908;</button>
     </div>
-
-    <!-- RIGHT COLUMN -->
-    <div>
-      <div class="card">
-        <h2>What the automation does &mdash; steps</h2>
-        <div class="hint">3-9 steps. BOT (orange) / AGENT (teal) / HUMAN (gold). 3-7 words each.</div>
-
-        <label style="margin-top:8px">Describe the process <span style="color:var(--text-dim); font-weight:400">(optional)</span> &mdash; we'll extract steps for you</label>
-        <div class="textarea-wrap">
-          <textarea id="processDesc" rows="4" placeholder="e.g. A bot pulls inbound denials and parses each file. An agent classifies by denial code and reasons over root cause. A bot extracts all key fields. A bot polls the payor portal for status. A human approves exceptions and signs the final appeal."></textarea>
-          <button class="mic-btn" type="button" onclick="toggleSpeech('processDesc', this)" title="Voice dictation">&#127908;</button>
-        </div>
-        <button id="extractStepsBtn" class="btn-secondary btn-secondary-sm" type="button" style="margin-bottom:14px">Extract steps with AI</button>
-        <div id="extractStepsStatus" class="status"></div>
-
-        <div id="steps" class="dynamic-list"></div>
-        <button type="button" class="add-btn" data-add="steps">+ Add step</button>
-      </div>
-
-      <div class="card">
-        <h2>Measured outcomes</h2>
-        <div class="hint">1-5 big stat tiles. Each tile: large value + short label.</div>
-        <div id="outcomes" class="dynamic-list"></div>
-        <button type="button" class="add-btn" data-add="outcomes">+ Add outcome</button>
-      </div>
-
-      <div class="card">
-        <h2>Attributable impact <span style="color:var(--text-dim); font-weight: 400; font-size: 11px">(optional)</span></h2>
-        <div class="hint">Directional metrics directly moved. Pick up/down per item.</div>
-        <div id="attributable" class="dynamic-list"></div>
-        <button type="button" class="add-btn" data-add="attributable">+ Add metric</button>
-      </div>
-
-      <div class="card">
-        <h2>Downstream impact <span style="color:var(--text-dim); font-weight: 400; font-size: 11px">(optional)</span></h2>
-        <div class="hint">Second-order effects beyond direct outputs.</div>
-        <div id="downstream" class="dynamic-list"></div>
-        <button type="button" class="add-btn" data-add="downstream">+ Add metric</button>
-      </div>
-
-      <button id="generateBtn" class="btn-primary" type="button">Generate .pptx</button>
-      <div id="generateStatus" class="status"></div>
+    <div class="intake-actions">
+      <button class="btn btn-teal" id="extractBtn" type="button">Magic Fill</button>
+      <span class="intake-status" id="extractStatus"></span>
     </div>
-
   </div>
 
-  <footer>UiPath Agentic Win Story Generator &middot; Single-slide output &middot; Light theme</footer>
+  <div class="or-divider"><span>or fill in manually</span></div>
+
+  <\!-- Customer & Use Case -->
+  <div class="card open">
+    <div class="card-hd" data-toggle>
+      <span class="badge req">Required</span>
+      <span class="card-title">Customer & Use Case</span>
+      <span class="filled-dot" data-dot="customer"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <div class="frow">
+        <div class="field">
+          <label>Company <span class="req-star">*</span></label>
+          <input id="company" type="text" placeholder="e.g. HCA Healthcare"/>
+        </div>
+        <div class="field">
+          <label>Use case title <span class="req-star">*</span> <span class="hint">(short: 3-6 words)</span></label>
+          <input id="title" type="text" placeholder="e.g. Medical claim adjudication" maxlength="90"/>
+        </div>
+      </div>
+      <div class="frow three">
+        <div class="field">
+          <label>Industry <span class="req-star">*</span></label>
+          <input id="bc0" type="text" placeholder="Healthcare"/>
+        </div>
+        <div class="field">
+          <label>Function <span class="req-star">*</span></label>
+          <input id="bc1" type="text" placeholder="Revenue cycle management"/>
+        </div>
+        <div class="field">
+          <label>Use case name</label>
+          <input id="bc2" type="text" placeholder="Denials intake & appeals"/>
+        </div>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Subtitle <span class="hint">one-line framing</span></label>
+          <input id="subtitle" type="text" placeholder="e.g. Agents reason over denials; bots execute; humans approve the edge cases." maxlength="140"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Problem -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge req">Required</span>
+      <span class="card-title">Problem</span>
+      <span class="filled-dot" data-dot="problem"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <div class="frow one">
+        <div class="field">
+          <label>Description <span class="req-star">*</span></label>
+          <div class="textarea-wrap">
+            <textarea id="problemDesc" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
+            <button class="mic-btn" type="button" onclick="toggleSpeech('problemDesc', this)" title="Voice dictation">&#127908;</button>
+          </div>
+          <div id="problemDescCount" class="char-count"></div>
+        </div>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Problem metrics <span class="hint">0-4, optional</span></label>
+          <div id="problemStats" class="dynamic-list"></div>
+          <button type="button" class="add-stat" data-add="problemStats">+ Add metric</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Solution -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge req">Required</span>
+      <span class="card-title">Solution</span>
+      <span class="filled-dot" data-dot="solution"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <div class="frow one">
+        <div class="field">
+          <label>Description <span class="req-star">*</span></label>
+          <div class="textarea-wrap">
+            <textarea id="solutionDesc" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
+            <button class="mic-btn" type="button" onclick="toggleSpeech('solutionDesc', this)" title="Voice dictation">&#127908;</button>
+          </div>
+          <div id="solutionDescCount" class="char-count"></div>
+        </div>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Capabilities <span class="hint">comma-separated; pills auto-wrap in slide</span></label>
+          <input id="capabilitiesInput" type="text" placeholder="Agents, Unattended Robots, Doc Understanding, Action Center"/>
+          <div id="capabilitiesPreview" class="capabilities-tags"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- What the automation does / Steps -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge req">Required</span>
+      <span class="card-title">What the automation does</span>
+      <span class="filled-dot" data-dot="steps"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 8px;line-height:1.5">Describe the process in plain language. AI will break it into steps and classify each actor (BOT, AGENT, HUMAN) for the automation flow.</p>
+      <div class="frow one">
+        <div class="field">
+          <label>Process description</label>
+          <div class="textarea-wrap">
+            <textarea id="processDesc" style="min-height:100px" placeholder="e.g. A bot pulls inbound denials and parses each file. An agent classifies by denial code and reasons over root cause. A bot extracts all key fields. A bot polls the payor portal for status. A human approves exceptions and signs the final appeal."></textarea>
+            <button class="mic-btn" type="button" onclick="toggleSpeech('processDesc', this)" title="Voice dictation">&#127908;</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-teal sm" id="extractStepsBtn" type="button">Extract steps with AI</button>
+        <span class="intake-status" id="extractStepsStatus"></span>
+      </div>
+      <div class="frow one" style="margin-top:14px">
+        <div class="field">
+          <label>Steps <span class="hint">3-9 steps, 3-7 words each</span></label>
+          <div id="steps" class="dynamic-list"></div>
+          <button type="button" class="add-stat" data-add="steps">+ Add step</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Measured Outcomes -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge req">Required</span>
+      <span class="card-title">Measured outcomes</span>
+      <span class="filled-dot" data-dot="outcomes"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 4px;line-height:1.5">1-5 big stat tiles. Each: a value + short label.</p>
+      <div id="outcomes" class="dynamic-list"></div>
+      <button type="button" class="add-stat" data-add="outcomes">+ Add outcome</button>
+    </div>
+  </div>
+
+  <\!-- Attributable Impact -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge opt">Optional</span>
+      <span class="card-title">Attributable impact</span>
+      <span class="filled-dot" data-dot="attributable"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 8px;line-height:1.5">Directional outcomes the solution directly moves but hasn't quantified yet. Write them naturally &mdash; we'll infer the &uarr; / &darr; direction from your words.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        <span class="chip">Reduced cycle time</span>
+        <span class="chip">Fewer manual touches</span>
+        <span class="chip">Improved first-pass yield</span>
+        <span class="chip">Lower backlog</span>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Impacts</label>
+          <textarea id="attributableText" placeholder="e.g. Reduced days in AR, reduced touches per claim, improved first-pass yield, improved provider satisfaction."></textarea>
+          <div id="attributablePreview" class="impact-preview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Downstream Impact -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge opt">Optional</span>
+      <span class="card-title">Downstream impact</span>
+      <span class="filled-dot" data-dot="downstream"></span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 8px;line-height:1.5">Second-order effects beyond the direct outputs &mdash; people, policy, reputation. Same rules: write naturally, we parse direction.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        <span class="chip">Higher staff retention</span>
+        <span class="chip">Better patient NPS</span>
+        <span class="chip">Reduced compliance risk</span>
+        <span class="chip">More audit readiness</span>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Impacts</label>
+          <textarea id="downstreamText" placeholder="e.g. Higher staff retention, improved patient NPS, better audit readiness, lower write-offs."></textarea>
+          <div id="downstreamPreview" class="impact-preview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-red" id="generateBtn" type="button">Generate Slide</button>
+    <button class="btn btn-outline" onclick="clearAll()" type="button">Clear</button>
+    <div class="form-gen-status" id="generateStatus"></div>
+  </div>
+
 </div>
 
 <script>
@@ -275,17 +510,23 @@
   function escapeAttr(s) { return String(s || '').replace(/"/g,'&quot;'); }
   function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
 
+  // ---------- Collapsible cards ----------
+  document.querySelectorAll('[data-toggle]').forEach(hd => {
+    hd.addEventListener('click', () => hd.closest('.card').classList.toggle('open'));
+  });
+
+  // ---------- Row builders ----------
   function buildRow_problemStats(value, label) {
     return '<div class="dynamic-item" data-list="problemStats">' +
-      '<input type="text" placeholder="Value (e.g. 12%+)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 28%"/>' +
-      '<input type="text" placeholder="Label (e.g. claims denied annually)" value="' + escapeAttr(label) + '" data-field="label"/>' +
+      '<input type="text" placeholder="Value (e.g. 12%+)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 32%"/>' +
+      '<input type="text" placeholder="Label (e.g. claims denied annually)" value="' + escapeAttr(label) + '" data-field="label" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
   function buildRow_outcomes(value, label) {
     return '<div class="dynamic-item" data-list="outcomes">' +
-      '<input type="text" placeholder="Value (e.g. $558K)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 28%"/>' +
-      '<input type="text" placeholder="Label (e.g. revenue released)" value="' + escapeAttr(label) + '" data-field="label"/>' +
+      '<input type="text" placeholder="Value (e.g. $558K)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 32%"/>' +
+      '<input type="text" placeholder="Label (e.g. revenue released)" value="' + escapeAttr(label) + '" data-field="label" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
@@ -297,53 +538,81 @@
         '<option value="BOT"'   + (role==='BOT'?' selected':'')   + '>BOT</option>' +
         '<option value="HUMAN"' + (role==='HUMAN'?' selected':'') + '>HUMAN</option>' +
       '</select>' +
-      '<input type="text" placeholder="Step description" value="' + escapeAttr(description) + '" data-field="description"/>' +
+      '<input type="text" placeholder="Step description" value="' + escapeAttr(description) + '" data-field="description" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
-  function buildRow_impact(listName, direction, text) {
-    direction = direction || 'down';
-    return '<div class="dynamic-item" data-list="' + listName + '">' +
-      '<select data-field="direction" class="dir-select">' +
-        '<option value="down"' + (direction==='down'?' selected':'') + '>&darr; Down</option>' +
-        '<option value="up"'   + (direction==='up'?' selected':'')   + '>&uarr; Up</option>' +
-      '</select>' +
-      '<input type="text" placeholder="Metric (e.g. Days in AR)" value="' + escapeAttr(text) + '" data-field="text"/>' +
-      '<button type="button" class="remove-btn">x</button>' +
-    '</div>';
-  }
-  function buildRow_attributable(direction, text) { return buildRow_impact('attributable', direction, text); }
-  function buildRow_downstream(direction, text)   { return buildRow_impact('downstream',   direction, text); }
 
   function addRow(listName, a, b) {
     const el = document.getElementById(listName);
-    const builder = {
-      problemStats: buildRow_problemStats,
-      outcomes: buildRow_outcomes,
-      steps: buildRow_steps,
-      attributable: buildRow_attributable,
-      downstream: buildRow_downstream,
-    }[listName];
+    const builder = { problemStats: buildRow_problemStats, outcomes: buildRow_outcomes, steps: buildRow_steps }[listName];
     el.insertAdjacentHTML('beforeend', builder(a, b));
   }
 
-  document.querySelectorAll('.add-btn').forEach(btn => {
+  document.querySelectorAll('.add-stat, .add-btn').forEach(btn => {
     btn.onclick = () => addRow(btn.dataset.add);
   });
   document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-btn')) {
-      e.target.closest('.dynamic-item').remove();
-    }
+    if (e.target.classList.contains('remove-btn')) e.target.closest('.dynamic-item').remove();
   });
 
+  // ---------- Capabilities preview ----------
   document.getElementById('capabilitiesInput').addEventListener('input', updateCapabilitiesPreview);
   function updateCapabilitiesPreview() {
-    const raw = document.getElementById('capabilitiesInput').value;
-    const list = raw.split(',').map(s => s.trim()).filter(Boolean);
+    const list = document.getElementById('capabilitiesInput').value.split(',').map(s => s.trim()).filter(Boolean);
     document.getElementById('capabilitiesPreview').innerHTML =
       list.map(c => '<span class="cap-chip">' + escapeHtml(c) + '</span>').join('');
   }
 
+  // ---------- Impact text parser (prose -> directional list) ----------
+  const DOWN_WORDS = /\b(reduced?|reducing|reduce|decreased?|decreasing|decrease|lower(?:ed|ing)?|fewer|less|minimized?|eliminate[ds]?|shrunk|shrink(?:ing)?|cut|cuts|cutting|shortened?|dropped?|dropping|drop|down|avoided|avoid|trimmed?|slashed?)\b/i;
+  const UP_WORDS = /\b(increased?|increasing|increase|improved?|improving|improve|higher|more|raised?|raising|raise|greater|better|enhanced?|enhancing|enhance|boost(?:ed|ing)?|accelerat(?:ed|ing|e)|grew|grow(?:ing)?|gain(?:ed|ing|s)?|up|stronger|faster|up)\b/i;
+
+  function parseImpactText(text) {
+    if (\!text) return [];
+    const items = [];
+    // Split on ., ·, ; or newline — preserve commas only as internal separators within an item when unambiguous
+    const parts = text.split(/[\.;\n\u00b7]+/).map(s => s.trim()).filter(Boolean);
+    // If only 1 part and it has commas, also split on commas
+    const segments = (parts.length <= 1 && text.includes(','))
+        ? text.split(/[,.;\n\u00b7]+/).map(s => s.trim()).filter(Boolean)
+        : parts;
+    segments.forEach(seg => {
+      // Direction detection: first word or anywhere
+      let dir = 'down';
+      if (DOWN_WORDS.test(seg)) dir = 'down';
+      else if (UP_WORDS.test(seg)) dir = 'up';
+      // Strip direction verb and articles to get clean metric name
+      let clean = seg
+        .replace(DOWN_WORDS, '')
+        .replace(UP_WORDS, '')
+        .replace(/^\s*(a|an|the|in|of|on|for)\s+/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (clean) {
+        // Capitalize first letter
+        clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+        items.push({ direction: dir, text: clean });
+      }
+    });
+    return items;
+  }
+
+  function renderImpactPreview(text, previewEl) {
+    const items = parseImpactText(text);
+    if (items.length === 0) { previewEl.textContent = ''; return; }
+    previewEl.innerHTML = items.map(it =>
+      (it.direction === 'up' ? '&uarr;' : '&darr;') + ' ' + escapeHtml(it.text)
+    ).join('   &middot;   ');
+  }
+  document.getElementById('attributableText').addEventListener('input', (e) => {
+    renderImpactPreview(e.target.value, document.getElementById('attributablePreview'));
+  });
+  document.getElementById('downstreamText').addEventListener('input', (e) => {
+    renderImpactPreview(e.target.value, document.getElementById('downstreamPreview'));
+  });
+
+  // ---------- Char counters ----------
   function countChars(fieldId, counterId, softMax, hardMax) {
     const el = document.getElementById(fieldId);
     const counter = document.getElementById(counterId);
@@ -358,14 +627,33 @@
     tick();
   }
 
+  // ---------- Filled-dot indicators ----------
+  function updateDots() {
+    const checks = {
+      customer: () => document.getElementById('company').value.trim() && document.getElementById('title').value.trim(),
+      problem:  () => document.getElementById('problemDesc').value.trim(),
+      solution: () => document.getElementById('solutionDesc').value.trim(),
+      steps:    () => document.querySelectorAll('#steps .dynamic-item input[data-field="description"]').length && Array.from(document.querySelectorAll('#steps input[data-field="description"]')).some(el => el.value.trim()),
+      outcomes: () => Array.from(document.querySelectorAll('#outcomes input[data-field="value"]')).some(el => el.value.trim()),
+      attributable: () => document.getElementById('attributableText').value.trim(),
+      downstream:   () => document.getElementById('downstreamText').value.trim(),
+    };
+    Object.keys(checks).forEach(k => {
+      const el = document.querySelector('[data-dot="' + k + '"]');
+      if (el) el.classList.toggle('on', \!\!checks[k]());
+    });
+  }
+  document.addEventListener('input', updateDots);
+  document.addEventListener('change', updateDots);
+
+  // ---------- Data collection ----------
   function collectData() {
-    const breadcrumb = [
-      document.getElementById('bc0').value.trim() || 'Industry',
-      document.getElementById('bc1').value.trim() || 'Function',
-      document.getElementById('bc2').value.trim() || 'Use case name',
-    ];
     return {
-      breadcrumb: breadcrumb,
+      breadcrumb: [
+        document.getElementById('bc0').value.trim() || 'Industry',
+        document.getElementById('bc1').value.trim() || 'Function',
+        document.getElementById('bc2').value.trim() || 'Use case name',
+      ],
       title: document.getElementById('title').value.trim(),
       subtitle: document.getElementById('subtitle').value.trim(),
       company: document.getElementById('company').value.trim(),
@@ -375,8 +663,8 @@
       capabilities: document.getElementById('capabilitiesInput').value.split(',').map(s => s.trim()).filter(Boolean),
       steps: collectListItems('steps', ['role','description']),
       outcomes: collectListItems('outcomes', ['value','label']),
-      attributable: collectListItems('attributable', ['direction','text']),
-      downstream: collectListItems('downstream', ['direction','text']),
+      attributable: parseImpactText(document.getElementById('attributableText').value),
+      downstream: parseImpactText(document.getElementById('downstreamText').value),
       theme: SLIDE_THEME,
     };
   }
@@ -389,12 +677,13 @@
         const el = row.querySelector('[data-field="' + f + '"]');
         obj[f] = el ? el.value.trim() : '';
       });
-      const hasContent = fields.filter(f => f !== 'direction').some(f => obj[f]);
+      const hasContent = fields.filter(f => f \!== 'direction' && f \!== 'role').some(f => obj[f]);
       if (hasContent) items.push(obj);
     });
     return items;
   }
 
+  // ---------- Populate form from AI ----------
   function populateForm(d) {
     if (d.breadcrumb && d.breadcrumb.length >= 3) {
       document.getElementById('bc0').value = d.breadcrumb[0] || '';
@@ -416,95 +705,88 @@
       document.getElementById('capabilitiesInput').value = d.capabilities.join(', ');
       updateCapabilitiesPreview();
     }
-
     document.getElementById('problemStats').innerHTML = '';
     (d.problem_stats || []).forEach(s => addRow('problemStats', s.value, s.label));
-
     document.getElementById('steps').innerHTML = '';
     (d.steps || []).forEach(s => addRow('steps', (s.role || s.type || 'AGENT').toUpperCase(), s.description || s.name || ''));
-
     document.getElementById('outcomes').innerHTML = '';
     (d.outcomes || []).forEach(o => addRow('outcomes', o.value, o.label));
 
-    document.getElementById('attributable').innerHTML = '';
+    // Attributable / Downstream: accept array, string, or {text} object
+    function impactArrayToText(arr) {
+      if (\!Array.isArray(arr)) return '';
+      return arr.map(it => {
+        const t = it.text || '';
+        const d = (it.direction || '').toLowerCase();
+        if (d === 'down') return 'Reduced ' + t;
+        if (d === 'up') return 'Improved ' + t;
+        return t;
+      }).join(', ');
+    }
     if (Array.isArray(d.attributable)) {
-      d.attributable.forEach(item => addRow('attributable', item.direction || 'down', item.text || ''));
-    } else if (typeof d.attributable === 'string' && d.attributable.trim()) {
-      d.attributable.split('·').forEach(part => {
-        const t = part.trim();
-        if (!t) return;
-        const dir = t.startsWith('\u2191') ? 'up' : 'down';
-        const clean = t.replace(/^[\u2191\u2193]\s*/, '').trim();
-        if (clean) addRow('attributable', dir, clean);
-      });
+      document.getElementById('attributableText').value = impactArrayToText(d.attributable);
+    } else if (typeof d.attributable === 'string') {
+      document.getElementById('attributableText').value = d.attributable;
     }
-
-    document.getElementById('downstream').innerHTML = '';
     if (Array.isArray(d.downstream)) {
-      d.downstream.forEach(item => addRow('downstream', item.direction || 'up', item.text || ''));
-    } else if (typeof d.downstream === 'string' && d.downstream.trim()) {
-      d.downstream.split('·').forEach(part => {
-        const t = part.trim();
-        if (!t) return;
-        const dir = t.startsWith('\u2193') ? 'down' : 'up';
-        const clean = t.replace(/^[\u2191\u2193]\s*/, '').trim();
-        if (clean) addRow('downstream', dir, clean);
-      });
+      document.getElementById('downstreamText').value = impactArrayToText(d.downstream);
+    } else if (typeof d.downstream === 'string') {
+      document.getElementById('downstreamText').value = d.downstream;
     }
+    document.getElementById('attributableText').dispatchEvent(new Event('input'));
+    document.getElementById('downstreamText').dispatchEvent(new Event('input'));
+
+    // Open all cards so user can review
+    document.querySelectorAll('.card').forEach(c => c.classList.add('open'));
+    updateDots();
   }
 
+  // ---------- Button handlers ----------
   document.getElementById('extractBtn').onclick = async () => {
     const text = document.getElementById('rawText').value.trim();
     const status = document.getElementById('extractStatus');
-    if (!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
-    status.textContent = 'Extracting...';
-    status.classList.remove('err');
+    if (\!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
+    status.textContent = 'Extracting...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text }),
+        body: JSON.stringify({ text }),
       });
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Extract failed'); }
+      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Extract failed'); }
       const data = await resp.json();
       populateForm(data);
       status.textContent = 'Form populated. Review and tweak before generating.';
-    } catch (e) {
-      status.textContent = 'Error: ' + e.message;
-      status.classList.add('err');
-    }
+    } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
   };
 
   document.getElementById('extractStepsBtn').onclick = async () => {
     const text = document.getElementById('processDesc').value.trim();
     const status = document.getElementById('extractStepsStatus');
-    if (!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
-    status.textContent = 'Extracting steps...';
-    status.classList.remove('err');
+    if (\!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
+    status.textContent = 'Extracting steps...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract-steps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text }),
+        body: JSON.stringify({ text }),
       });
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Step extract failed'); }
+      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Step extract failed'); }
       const data = await resp.json();
       document.getElementById('steps').innerHTML = '';
       (data.steps || []).forEach(s => addRow('steps', (s.role || 'AGENT').toUpperCase(), s.description || ''));
       status.textContent = 'Steps populated.';
-    } catch (e) {
-      status.textContent = 'Error: ' + e.message;
-      status.classList.add('err');
-    }
+      updateDots();
+    } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
   };
 
   document.getElementById('generateBtn').onclick = async () => {
     const status = document.getElementById('generateStatus');
     const btn = document.getElementById('generateBtn');
     const data = collectData();
-    if (!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
-    status.textContent = 'Generating...';
-    status.classList.remove('err');
+    if (\!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
+    if (\!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
+    status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
     try {
       const resp = await fetch('/generate', {
@@ -512,30 +794,38 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Generate failed'); }
+      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Generate failed'); }
       const blob = await resp.blob();
       const filename = (data.company || 'agentic_win_story').replace(/[^\w\s-]/g, '_') + '_agentic_win_story.pptx';
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
+      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
       status.textContent = 'Downloaded.';
-    } catch (e) {
-      status.textContent = 'Error: ' + e.message;
-      status.classList.add('err');
-    } finally {
-      btn.disabled = false;
-    }
+    } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
+    finally { btn.disabled = false; }
   };
 
-  // Voice dictation
+  function clearAll() {
+    if (\!confirm('Clear the entire form?')) return;
+    document.querySelectorAll('input[type=text], textarea').forEach(el => el.value = '');
+    ['problemStats','steps','outcomes'].forEach(id => document.getElementById(id).innerHTML = '');
+    document.getElementById('attributablePreview').textContent = '';
+    document.getElementById('downstreamPreview').textContent = '';
+    document.getElementById('capabilitiesPreview').innerHTML = '';
+    document.getElementById('extractStatus').textContent = '';
+    document.getElementById('generateStatus').textContent = '';
+    seedStarterRows();
+    updateDots();
+  }
+
+  // ---------- Voice dictation ----------
   let recognition = null;
   let activeMicBtn = null;
   function toggleSpeech(textareaId, btn) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert('Voice dictation requires Chrome or Edge.'); return; }
+    if (\!SR) { alert('Voice dictation requires Chrome or Edge.'); return; }
     if (recognition && activeMicBtn === btn) { recognition.stop(); return; }
-    if (recognition) { recognition.stop(); }
+    if (recognition) recognition.stop();
     recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -547,10 +837,9 @@
       let interim = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
         const txt = ev.results[i][0].transcript;
-        if (ev.results[i].isFinal) finalTranscript += txt;
-        else interim += txt;
+        if (ev.results[i].isFinal) finalTranscript += txt; else interim += txt;
       }
-      textarea.value = startValue + (startValue && !startValue.endsWith(' ') ? ' ' : '') + finalTranscript + interim;
+      textarea.value = startValue + (startValue && \!startValue.endsWith(' ') ? ' ' : '') + finalTranscript + interim;
       textarea.dispatchEvent(new Event('input'));
     };
     recognition.onerror = () => { btn.classList.remove('active'); activeMicBtn = null; };
@@ -560,16 +849,18 @@
     activeMicBtn = btn;
   }
 
-  // Seed starter rows + char counters
+  // ---------- Seed starter rows ----------
+  function seedStarterRows() {
+    addRow('problemStats'); addRow('problemStats'); addRow('problemStats');
+    addRow('steps', 'BOT'); addRow('steps', 'AGENT'); addRow('steps', 'BOT'); addRow('steps', 'BOT'); addRow('steps', 'HUMAN');
+    addRow('outcomes'); addRow('outcomes'); addRow('outcomes');
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     countChars('problemDesc',  'problemDescCount',  240, 320);
     countChars('solutionDesc', 'solutionDescCount', 220, 320);
-    addRow('problemStats'); addRow('problemStats'); addRow('problemStats');
-    addRow('steps', 'AGENT'); addRow('steps', 'BOT'); addRow('steps', 'AGENT');
-    addRow('steps', 'BOT'); addRow('steps', 'HUMAN');
-    addRow('outcomes'); addRow('outcomes'); addRow('outcomes');
-    addRow('attributable', 'down'); addRow('attributable', 'down'); addRow('attributable', 'up');
-    addRow('downstream', 'up'); addRow('downstream', 'up');
+    seedStarterRows();
+    updateDots();
   });
 </script>
 </body>
