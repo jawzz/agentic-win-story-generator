@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+*.pptx.bak
+venv/
+.venv/
+test_outputs/
+~$*
+generate_pptx_v*.py
+gen_v*.py
