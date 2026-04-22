@@ -59,6 +59,21 @@ Return ONLY a valid JSON object. No markdown fences, no preamble:
 }"""
 
 
+
+
+SUGGESTIONS_PROMPT = """You are a UiPath CSM helping build a stronger agentic win story. Be concise and specific.
+
+Review the story data and return ONLY a JSON object with exactly these fields:
+{
+  "topSuggestion": "The single most impactful thing to do right now (1 sentence)",
+  "missingData": [max 3 items: {"what": "data to find", "where": "Salesforce/Gainsight/CSM notes/AE/QBR deck", "why": "1 sentence"}],
+  "agenticValue": [max 2 items: {"question": "probing question", "insight": "what it reveals"}],
+  "storyAngles": [max 2 items: {"angle": "angle name", "suggestion": "action to take"}]
+}
+
+Focus on: missing metrics (ROI, cycle time, throughput, quality), agentic value beyond time saved (revenue impact, exception resolution, capacity), and where to find this data internally (Salesforce, Gainsight, QBR decks, CSM notes, AE). Keep every field under 20 words. Return ONLY the JSON, no explanation."""
+
+
 STEPS_PROMPT = """You are a UiPath process analyst. Given a description of an agentic automation process, break it into 3-9 discrete steps.
 
 For each step, classify the actor role:
@@ -153,42 +168,4 @@ def extract_steps():
         return jsonify(parsed)
     except json.JSONDecodeError as e:
         return jsonify(error=f'Could not parse AI response as JSON: {e}'), 500
-    except http_requests.Timeout:
-        return jsonify(error='AI request timed out. Try again.'), 504
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify(error=f'Step extraction failed: {str(e)}'), 500
-
-
-@app.route('/generate', methods=['POST'])
-def generate():
-    """Takes structured JSON, returns PPTX bytes."""
-    try:
-        data = request.get_json(force=True)
-        pptx_bytes, slide_num = build_pptx(data)
-        customer = (data.get('company') or 'agentic_win_story').strip()
-        safe_name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in customer)
-        filename = f'{safe_name}_agentic_win_story.pptx'
-        return Response(
-            pptx_bytes,
-            mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            headers={
-                'Content-Disposition': f'attachment; filename="{filename}"',
-                'X-Slide-Number': str(slide_num),
-            }
-        )
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify(error=f'Generation failed: {str(e)}'), 500
-
-
-@app.route('/health')
-def health():
-    has_key = bool(os.environ.get('ANTHROPIC_API_KEY', '').strip())
-    return jsonify(status='ok', ai_enabled=has_key)
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    print(f'\n  Agentic Win Story Generator running at http://localhost:{port}\n')
-    app.run(host='0.0.0.0', port=port, debug=False)
+    except http_requests.

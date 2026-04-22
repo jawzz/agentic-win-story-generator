@@ -350,10 +350,7 @@
       <div class="frow one">
         <div class="field">
           <label>Description <span class="req-star">*</span></label>
-          <div class="textarea-wrap">
-            <textarea id="problemDesc" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
-            <button class="mic-btn" type="button" onclick="toggleSpeech('problemDesc', this)" title="Voice dictation">&#127908;</button>
-          </div>
+          <textarea id="problemDesc" placeholder="Denied claims arrive as unstructured PDFs. Indexing is slow and error-prone, stalling appeals and inflating AR days."></textarea>
           <div id="problemDescCount" class="char-count"></div>
         </div>
       </div>
@@ -379,10 +376,7 @@
       <div class="frow one">
         <div class="field">
           <label>Description <span class="req-star">*</span></label>
-          <div class="textarea-wrap">
-            <textarea id="solutionDesc" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
-            <button class="mic-btn" type="button" onclick="toggleSpeech('solutionDesc', this)" title="Voice dictation">&#127908;</button>
-          </div>
+          <textarea id="solutionDesc" placeholder="Agents classify denials; bots execute extractions and poll payor portals; humans approve exceptions."></textarea>
           <div id="solutionDescCount" class="char-count"></div>
         </div>
       </div>
@@ -493,6 +487,22 @@
           <div id="downstreamPreview" class="impact-preview"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <\!-- Suggestions (AI-powered data hints) -->
+  <div class="card">
+    <div class="card-hd" data-toggle>
+      <span class="badge opt">Optional</span>
+      <span class="card-title">&#128161; Get suggestions</span>
+      <span class="card-chev">&#9660;</span>
+    </div>
+    <div class="card-bd">
+      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 8px;line-height:1.5">AI reviews your story and tells you what data to chase down, probing questions to ask, and story angles to strengthen the narrative.</p>
+      <button class="btn btn-teal sm" id="suggestBtn" type="button">Get suggestions</button>
+      <span class="intake-status" id="suggestStatus" style="margin-left:10px"></span>
+      <div id="suggestionsPanel" style="display:none;margin-top:14px"></div>
     </div>
   </div>
 
@@ -856,9 +866,40 @@
     addRow('outcomes'); addRow('outcomes'); addRow('outcomes');
   }
 
+  // Smart counter: thresholds depend on whether stats/pills occupy the bottom half of the card
+  function getProblemThresholds() {
+    const hasStats = document.querySelectorAll('#problemStats .dynamic-item').length > 0 &&
+      Array.from(document.querySelectorAll('#problemStats input[data-field="value"]')).some(el => el.value.trim());
+    return hasStats ? [240, 320] : [380, 500];
+  }
+  function getSolutionThresholds() {
+    const pills = document.getElementById('capabilitiesInput').value.split(',').map(s=>s.trim()).filter(Boolean);
+    if (pills.length === 0) return [360, 500];
+    // Rough width estimate — if likely to wrap to 2 rows, tighten
+    const approxWidth = pills.reduce((acc, p) => acc + 0.22 + p.length * 0.075 + 0.08, 0);
+    return approxWidth > 5.3 ? [180, 260] : [280, 400];
+  }
+  function countCharsSmart(fieldId, counterId, getThresholds) {
+    const el = document.getElementById(fieldId);
+    const counter = document.getElementById(counterId);
+    const tick = () => {
+      const [soft, hard] = getThresholds();
+      const n = el.value.length;
+      counter.textContent = n + ' / ' + soft + ' rec.';
+      counter.classList.remove('warn','err');
+      if (n > hard) counter.classList.add('err');
+      else if (n > soft) counter.classList.add('warn');
+    };
+    el.addEventListener('input', tick);
+    // Re-evaluate when stats/pills change
+    document.addEventListener('input', tick);
+    tick();
+    return tick;
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    countChars('problemDesc',  'problemDescCount',  240, 320);
-    countChars('solutionDesc', 'solutionDescCount', 220, 320);
+    countCharsSmart('problemDesc',  'problemDescCount',  getProblemThresholds);
+    countCharsSmart('solutionDesc', 'solutionDescCount', getSolutionThresholds);
     seedStarterRows();
     updateDots();
   });
