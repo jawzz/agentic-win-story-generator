@@ -144,11 +144,38 @@ def _guess_domain(company):
     return f'{domain_core}.com'
 
 
+def _normalize_to_png(data):
+    """Accept any image bytes (ICO, JPEG, PNG, etc.), return PNG bytes.
+    python-pptx only embeds BMP/GIF/JPEG/PNG/TIFF/WMF — ICO fallbacks break it.
+    We re-encode through PIL to PNG."""
+    try:
+        from PIL import Image
+        im = Image.open(io.BytesIO(data))
+        # ICO files may contain multiple sizes — pick the largest
+        if getattr(im, 'n_frames', 1) > 1 or im.format == 'ICO':
+            try:
+                sizes = im.info.get('sizes') or []
+                if sizes:
+                    largest = max(sizes, key=lambda s: s[0]*s[1])
+                    im.size = largest
+                    im.load()
+            except Exception:
+                pass
+        # Convert mode to RGBA to preserve transparency
+        if im.mode not in ('RGB', 'RGBA'):
+            im = im.convert('RGBA')
+        buf = io.BytesIO()
+        im.save(buf, 'PNG')
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
 def _fetch_customer_logo(company, timeout=4):
     """Fetch a customer logo image by guessing the company's domain.
     Tries Clearbit first (high-res SVG/PNG), then Google S2 favicon,
     then DuckDuckGo icon service as fallbacks. Matches behavior of the
-    original Win Story Generator. Returns image bytes or None."""
+    original Win Story Generator. Returns PNG image bytes or None."""
     domain = _guess_domain(company)
     if not domain:
         return None
@@ -166,8 +193,11 @@ def _fetch_customer_logo(company, timeout=4):
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 if resp.status == 200:
                     data = resp.read()
-                    if len(data) > 200:  # guard against tiny error/placeholder images
-                        return data
+                    if len(data) > 200:
+                        # Always normalize to PNG so python-pptx accepts it
+                        png = _normalize_to_png(data)
+                        if png:
+                            return png
         except Exception:
             continue
     return None
