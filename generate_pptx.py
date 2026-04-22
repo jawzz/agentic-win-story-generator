@@ -139,26 +139,134 @@ def _guess_domain(company):
     return f'{domain_core}.com'
 
 
-def _fetch_customer_logo(company, timeout=3):
-    """Try Clearbit for a high-res customer logo PNG. Returns bytes or None."""
+def _fetch_customer_logo(company, timeout=4):
+    """Fetch a customer logo image by guessing the company's domain.
+    Tries Clearbit first (high-res SVG/PNG), then Google S2 favicon,
+    then DuckDuckGo icon service as fallbacks. Matches behavior of the
+    original Win Story Generator. Returns image bytes or None."""
     domain = _guess_domain(company)
     if not domain:
         return None
-    urls = [
+    sources = [
         f'https://logo.clearbit.com/{domain}?size=512',
         f'https://logo.clearbit.com/{domain}?size=256',
+        f'https://www.google.com/s2/favicons?domain={domain}&sz=256',
+        f'https://www.google.com/s2/favicons?domain={domain}&sz=128',
+        f'https://icons.duckduckgo.com/ip3/{domain}.ico',
     ]
-    for url in urls:
+    headers = {'User-Agent': 'Mozilla/5.0 WinStoryGenerator'}
+    for url in sources:
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 if resp.status == 200:
                     data = resp.read()
-                    if len(data) > 500:  # guard against tiny error images
+                    if len(data) > 200:  # guard against tiny error/placeholder images
                         return data
         except Exception:
             continue
     return None
+
+
+
+# ---------- UiPath + Customer partnership lockup ----------
+def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
+    """Draw a filled circle with a white + sign inside, centered at (cx, cy).
+    cx, cy, diameter are in inches."""
+    # Circle
+    r = diameter / 2
+    sh = slide.shapes.add_shape(MSO_SHAPE.OVAL,
+                                Inches(cx - r), Inches(cy - r),
+                                Inches(diameter), Inches(diameter))
+    sh.fill.solid(); sh.fill.fore_color.rgb = fill_color
+    sh.line.fill.background(); sh.shadow.inherit = False
+    # + sign via two thin rectangles (cross)
+    bar_len = diameter * 0.52
+    bar_thick = diameter * 0.11
+    # horizontal
+    hx = cx - bar_len / 2
+    hy = cy - bar_thick / 2
+    h = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
+                               Inches(hx), Inches(hy), Inches(bar_len), Inches(bar_thick))
+    h.fill.solid(); h.fill.fore_color.rgb = cross_color
+    h.line.fill.background(); h.shadow.inherit = False
+    # vertical
+    vx = cx - bar_thick / 2
+    vy = cy - bar_len / 2
+    v = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
+                               Inches(vx), Inches(vy), Inches(bar_thick), Inches(bar_len))
+    v.fill.solid(); v.fill.fore_color.rgb = cross_color
+    v.line.fill.background(); v.shadow.inherit = False
+
+
+def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, company_name,
+                              *, text_color, muted, plus_color):
+    """UiPath logo is ALWAYS fixed in the top-right corner (same spot every time).
+    Customer element (logo or name) sits to the LEFT of UiPath, with a circled +
+    between them. If no company_name, only the UiPath logo renders."""
+    import tempfile, os as _os
+    from PIL import Image as _PIL
+
+    # ---- UiPath logo: FIXED position, top-right ----
+    try:
+        uim = _PIL.open(uipath_logo_path); uiw, uih = uim.size
+    except Exception:
+        uiw, uih = 3, 1
+    ui_h = 0.44
+    ui_w = ui_h * (uiw / uih if uih else 3.0)
+    ui_right = 12.90
+    ui_top = 0.22
+    ui_left = ui_right - ui_w
+    ui_center_y = ui_top + ui_h / 2
+    slide.shapes.add_picture(uipath_logo_path, Inches(ui_left), Inches(ui_top),
+                             width=Inches(ui_w), height=Inches(ui_h))
+
+    if not company_name:
+        return
+
+    # ---- Plus-in-circle sits to the LEFT of the UiPath logo ----
+    plus_diameter = 0.34
+    plus_gap = 0.16
+    plus_cx = ui_left - plus_gap - plus_diameter / 2
+    plus_cy = ui_center_y
+    # Use a dark-ish fill that reads as a chip on light AND dark themes
+    plus_fill = plus_color
+    cross_color = RGBColor(0xFF, 0xFF, 0xFF)
+    _draw_plus_circle(slide, plus_cx, plus_cy, plus_diameter, plus_fill, cross_color)
+
+    # ---- Customer element to the LEFT of the plus ----
+    cust_right = plus_cx - plus_diameter / 2 - plus_gap
+    if customer_logo_bytes:
+        tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        tmp.write(customer_logo_bytes); tmp.close()
+        try:
+            try:
+                cim = _PIL.open(tmp.name); cw, ch = cim.size
+            except Exception:
+                cw, ch = 1, 1
+            # Preserve aspect ratio, fit into max area
+            c_max_h = 0.50
+            c_max_w = 2.20
+            ar_c = cw / ch if ch else 1.0
+            c_h = c_max_h
+            c_w = c_h * ar_c
+            if c_w > c_max_w:
+                c_w = c_max_w
+                c_h = c_w / ar_c
+            cust_x = cust_right - c_w
+            cust_y = ui_center_y - c_h / 2
+            slide.shapes.add_picture(tmp.name, Inches(cust_x), Inches(cust_y),
+                                     width=Inches(c_w), height=Inches(c_h))
+        finally:
+            try: _os.unlink(tmp.name)
+            except Exception: pass
+    else:
+        # Customer as bold text, right-aligned to cust_right
+        name_w = min(2.4, max(0.8, 0.14 * len(company_name) + 0.3))
+        name_x = cust_right - name_w
+        name_y = ui_center_y - 0.19
+        _text(slide, name_x, name_y, name_w, 0.38, company_name,
+              size=15, bold=True, color=text_color, align='right', anchor='middle')
 
 
 # ---------- main slide builder ----------
@@ -200,7 +308,7 @@ def _build_slide(slide, *, theme, data):
         {'text': '   /   ', 'size': 10, 'color': T['TEXT_DIM']},
         {'text': bc2, 'size': 10, 'color': T['TEXT'], 'bold': True},
     ])
-    slide.shapes.add_picture(logo_path, Inches(11.80), Inches(0.22), height=Inches(0.44))
+    # UiPath logo + customer logo lockup placed below (uses _draw_logo_lockup)
 
     # Title + subtitle
     tb = slide.shapes.add_textbox(Inches(0.5), Inches(0.60), Inches(9.0), Inches(1.20))
@@ -219,9 +327,12 @@ def _build_slide(slide, *, theme, data):
         r2.font.name = F; r2.font.size = Pt(13)
         r2.font.color.rgb = T['TEXT_MUTED']
 
-    # Company name right-aligned
-    _text(slide, 9.7, 1.05, 3.2, 0.6, data.get('company', ''),
-          size=22, bold=True, color=T['TEXT'], align='right', anchor='middle')
+    # --- UiPath + Customer lockup in top-right ---
+    company_name = data.get('company', '')
+    logo_bytes = _fetch_customer_logo(company_name) if company_name else None
+    _draw_partnership_lockup(slide, logo_path, logo_bytes, company_name,
+                             text_color=T['TEXT'], muted=T['TEXT_MUTED'],
+                             plus_color=T['TEXT_MUTED'])
 
     _rect(slide, 0.5, divider_y, 12.33, 0.015, T['DIVIDER'])
 

@@ -569,7 +569,7 @@
   const UP_WORDS = /\b(increased?|increasing|increase|improved?|improving|improve|higher|more|raised?|raising|raise|greater|better|enhanced?|enhancing|enhance|boost(?:ed|ing)?|accelerat(?:ed|ing|e)|grew|grow(?:ing)?|gain(?:ed|ing|s)?|up|stronger|faster|up)\b/i;
 
   function parseImpactText(text) {
-    if (\!text) return [];
+    if (!text) return [];
     const items = [];
     // Split on ., ·, ; or newline — preserve commas only as internal separators within an item when unambiguous
     const parts = text.split(/[\.;\n\u00b7]+/).map(s => s.trim()).filter(Boolean);
@@ -640,7 +640,7 @@
     };
     Object.keys(checks).forEach(k => {
       const el = document.querySelector('[data-dot="' + k + '"]');
-      if (el) el.classList.toggle('on', \!\!checks[k]());
+      if (el) el.classList.toggle('on', !!checks[k]());
     });
   }
   document.addEventListener('input', updateDots);
@@ -677,7 +677,7 @@
         const el = row.querySelector('[data-field="' + f + '"]');
         obj[f] = el ? el.value.trim() : '';
       });
-      const hasContent = fields.filter(f => f \!== 'direction' && f \!== 'role').some(f => obj[f]);
+      const hasContent = fields.filter(f => f !== 'direction' && f !== 'role').some(f => obj[f]);
       if (hasContent) items.push(obj);
     });
     return items;
@@ -714,7 +714,7 @@
 
     // Attributable / Downstream: accept array, string, or {text} object
     function impactArrayToText(arr) {
-      if (\!Array.isArray(arr)) return '';
+      if (!Array.isArray(arr)) return '';
       return arr.map(it => {
         const t = it.text || '';
         const d = (it.direction || '').toLowerCase();
@@ -745,7 +745,7 @@
   document.getElementById('extractBtn').onclick = async () => {
     const text = document.getElementById('rawText').value.trim();
     const status = document.getElementById('extractStatus');
-    if (\!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
+    if (!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
     status.textContent = 'Extracting...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract', {
@@ -753,7 +753,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
-      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Extract failed'); }
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Extract failed'); }
       const data = await resp.json();
       populateForm(data);
       status.textContent = 'Form populated. Review and tweak before generating.';
@@ -763,7 +763,7 @@
   document.getElementById('extractStepsBtn').onclick = async () => {
     const text = document.getElementById('processDesc').value.trim();
     const status = document.getElementById('extractStepsStatus');
-    if (\!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
+    if (!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
     status.textContent = 'Extracting steps...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract-steps', {
@@ -771,7 +771,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
-      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Step extract failed'); }
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Step extract failed'); }
       const data = await resp.json();
       document.getElementById('steps').innerHTML = '';
       (data.steps || []).forEach(s => addRow('steps', (s.role || 'AGENT').toUpperCase(), s.description || ''));
@@ -784,8 +784,8 @@
     const status = document.getElementById('generateStatus');
     const btn = document.getElementById('generateBtn');
     const data = collectData();
-    if (\!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
-    if (\!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
+    if (!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
+    if (!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
     status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
     try {
@@ -794,7 +794,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (\!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Generate failed'); }
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Generate failed'); }
       const blob = await resp.blob();
       const filename = (data.company || 'agentic_win_story').replace(/[^\w\s-]/g, '_') + '_agentic_win_story.pptx';
       const url = URL.createObjectURL(blob);
@@ -806,7 +806,7 @@
   };
 
   function clearAll() {
-    if (\!confirm('Clear the entire form?')) return;
+    if (!confirm('Clear the entire form?')) return;
     document.querySelectorAll('input[type=text], textarea').forEach(el => el.value = '');
     ['problemStats','steps','outcomes'].forEach(id => document.getElementById(id).innerHTML = '');
     document.getElementById('attributablePreview').textContent = '';
@@ -823,7 +823,7 @@
   let activeMicBtn = null;
   function toggleSpeech(textareaId, btn) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (\!SR) { alert('Voice dictation requires Chrome or Edge.'); return; }
+    if (!SR) { alert('Voice dictation requires Chrome or Edge.'); return; }
     if (recognition && activeMicBtn === btn) { recognition.stop(); return; }
     if (recognition) recognition.stop();
     recognition = new SR();
@@ -839,7 +839,7 @@
         const txt = ev.results[i][0].transcript;
         if (ev.results[i].isFinal) finalTranscript += txt; else interim += txt;
       }
-      textarea.value = startValue + (startValue && \!startValue.endsWith(' ') ? ' ' : '') + finalTranscript + interim;
+      textarea.value = startValue + (startValue && !startValue.endsWith(' ') ? ' ' : '') + finalTranscript + interim;
       textarea.dispatchEvent(new Event('input'));
     };
     recognition.onerror = () => { btn.classList.remove('active'); activeMicBtn = null; };
