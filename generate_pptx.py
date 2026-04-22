@@ -33,13 +33,15 @@ DARK = {
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('0E5C68'),'GOLD':C('DA9100'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('FFFFFF'),
     'TEXT_MUTED':C('8AABB5'),'TEXT_DIM':C('5C7480'),
+    'OUTCOME_FILL':C('FA4616'),
 }
 LIGHT = {
     'BG':C('F7F8FA'),'CARD_BG':C('FFFFFF'),'CARD_BG_2':C('EDEFF2'),'CARD_BG_3':C('FFFFFF'),
-    'DIVIDER':C('D8DDE3'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('FA4616'),
-    'TEAL':C('0BA2B3'),'TEAL_CARD':C('0BA2B3'),'GOLD':C('DA9100'),
+    'DIVIDER':C('D8DDE3'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('0BA2B3'),
+    'TEAL':C('0BA2B3'),'TEAL_CARD':C('1E6482'),'GOLD':C('DA9100'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('1A2330'),
     'TEXT_MUTED':C('5A6B78'),'TEXT_DIM':C('8A98A5'),
+    'OUTCOME_FILL':C('FA4616'),
 }
 
 F = "Poppins"
@@ -171,26 +173,33 @@ def _fetch_customer_logo(company, timeout=4):
 
 # ---------- UiPath + Customer partnership lockup ----------
 def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
-    """Draw a filled circle with a white + sign inside, centered at (cx, cy).
-    cx, cy, diameter are in inches."""
-    # Circle
+    """Draw a thick-outlined ring with a + cross inside (matches attached icon).
+    Transparent inside of ring, black cross and black ring stroke.
+    `fill_color` is unused (kept for signature compatibility). `cross_color` is
+    used for BOTH the ring outline and the + bars."""
     r = diameter / 2
-    sh = slide.shapes.add_shape(MSO_SHAPE.OVAL,
-                                Inches(cx - r), Inches(cy - r),
-                                Inches(diameter), Inches(diameter))
-    sh.fill.solid(); sh.fill.fore_color.rgb = fill_color
-    sh.line.fill.background(); sh.shadow.inherit = False
-    # + sign via two thin rectangles (cross)
-    bar_len = diameter * 0.52
-    bar_thick = diameter * 0.11
-    # horizontal
+    # Outlined ring (no fill, thick black border)
+    ring = slide.shapes.add_shape(MSO_SHAPE.OVAL,
+                                  Inches(cx - r), Inches(cy - r),
+                                  Inches(diameter), Inches(diameter))
+    ring.fill.background()  # transparent inside
+    ring.line.color.rgb = cross_color
+    # Stroke thickness scales with diameter so the ring reads as thick
+    stroke_pt = max(1.5, diameter * 5.5)  # ~0.34in -> ~2.7pt
+    ring.line.width = Pt(stroke_pt)
+    ring.shadow.inherit = False
+
+    # + cross inside (two thick bars)
+    bar_len = diameter * 0.44
+    bar_thick = diameter * 0.17
+    # horizontal bar
     hx = cx - bar_len / 2
     hy = cy - bar_thick / 2
     h = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
                                Inches(hx), Inches(hy), Inches(bar_len), Inches(bar_thick))
     h.fill.solid(); h.fill.fore_color.rgb = cross_color
     h.line.fill.background(); h.shadow.inherit = False
-    # vertical
+    # vertical bar
     vx = cx - bar_thick / 2
     vy = cy - bar_len / 2
     v = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
@@ -212,10 +221,10 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
         uim = _PIL.open(uipath_logo_path); uiw, uih = uim.size
     except Exception:
         uiw, uih = 3, 1
-    ui_h = 0.44
+    ui_h = 0.40
     ui_w = ui_h * (uiw / uih if uih else 3.0)
     ui_right = 12.90
-    ui_top = 0.22
+    ui_top = 0.30
     ui_left = ui_right - ui_w
     ui_center_y = ui_top + ui_h / 2
     slide.shapes.add_picture(uipath_logo_path, Inches(ui_left), Inches(ui_top),
@@ -225,14 +234,13 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
         return
 
     # ---- Plus-in-circle sits to the LEFT of the UiPath logo ----
-    plus_diameter = 0.34
-    plus_gap = 0.16
+    plus_diameter = 0.22
+    plus_gap = 0.22  # symmetric gap on both sides of the + icon
     plus_cx = ui_left - plus_gap - plus_diameter / 2
     plus_cy = ui_center_y
-    # Use a dark-ish fill that reads as a chip on light AND dark themes
-    plus_fill = plus_color
-    cross_color = RGBColor(0xFF, 0xFF, 0xFF)
-    _draw_plus_circle(slide, plus_cx, plus_cy, plus_diameter, plus_fill, cross_color)
+    # Icon = black (or theme text color) — transparent inside of ring
+    icon_color = text_color
+    _draw_plus_circle(slide, plus_cx, plus_cy, plus_diameter, None, icon_color)
 
     # ---- Customer element to the LEFT of the plus ----
     cust_right = plus_cx - plus_diameter / 2 - plus_gap
@@ -264,7 +272,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
         # Customer as bold text, right-aligned to cust_right
         name_w = min(2.4, max(0.8, 0.14 * len(company_name) + 0.3))
         name_x = cust_right - name_w
-        name_y = ui_center_y - 0.19
+        name_y = ui_center_y - 0.15
         _text(slide, name_x, name_y, name_w, 0.38, company_name,
               size=15, bold=True, color=text_color, align='right', anchor='middle')
 
@@ -519,7 +527,7 @@ def _build_slide(slide, *, theme, data):
         tw2 = (12.33 - tg*(nt-1)) / nt
         for i, (num, label) in enumerate(norm_outcomes):
             tx = 0.5 + i*(tw2 + tg)
-            _rect(slide, tx, tile_y, tw2, tile_h_out, T['ORANGE'])
+            _rect(slide, tx, tile_y, tw2, tile_h_out, T['OUTCOME_FILL'])
             _text(slide, tx+0.32, tile_y+0.10, tw2-0.5, 0.46,
                   num, size=30, bold=True, color=T['WHITE'])
             _text(slide, tx+0.32, tile_y+0.54, tw2-0.5, 0.22,
