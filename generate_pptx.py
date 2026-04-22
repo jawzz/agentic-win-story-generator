@@ -48,6 +48,9 @@ F = "Poppins"
 BASE_DIR = Path(__file__).parent
 LOGO_WHITE = BASE_DIR / 'static' / 'uipath_logo_2400.png'
 LOGO_DARK = BASE_DIR / 'static' / 'uipath_logo_2400_dark.png'
+BPMN_ROBOT = BASE_DIR / 'static' / 'icons' / 'bpmn_robot.png'
+BPMN_AGENT = BASE_DIR / 'static' / 'icons' / 'bpmn_agent.png'
+BPMN_PERSON = BASE_DIR / 'static' / 'icons' / 'bpmn_person.png'
 
 
 # ---------- shape helpers ----------
@@ -237,7 +240,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
     plus_diameter = 0.22
     plus_gap = 0.22  # symmetric gap on both sides of the + icon
     plus_cx = ui_left - plus_gap - plus_diameter / 2
-    plus_cy = ui_center_y + 0.05  # nudge down to match UiPath wordmark visual center
+    plus_cy = ui_center_y + 0.15  # nudge down to match UiPath wordmark visual center
     # Icon = black (or theme text color) — transparent inside of ring
     icon_color = text_color
     _draw_plus_circle(slide, plus_cx, plus_cy, plus_diameter, None, icon_color)
@@ -262,7 +265,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
                 c_w = c_max_w
                 c_h = c_w / ar_c
             cust_x = cust_right - c_w
-            cust_y = ui_center_y - c_h / 2 + 0.05
+            cust_y = ui_center_y - c_h / 2 + 0.15
             slide.shapes.add_picture(tmp.name, Inches(cust_x), Inches(cust_y),
                                      width=Inches(c_w), height=Inches(c_h))
         finally:
@@ -272,7 +275,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
         # Customer as bold text, right-aligned to cust_right
         name_w = min(2.4, max(0.8, 0.14 * len(company_name) + 0.3))
         name_x = cust_right - name_w
-        name_y = ui_center_y - 0.11
+        name_y = ui_center_y - 0.01
         _text(slide, name_x, name_y, name_w, 0.38, company_name,
               size=15, bold=True, color=text_color, align='right', anchor='middle')
 
@@ -493,6 +496,15 @@ def _build_slide(slide, *, theme, data):
             label = f"{i+1:02d}  {r}" if show_num else r
             _text(slide, x+0.14, step_y+0.12, tile_w-0.24, 0.22,
                   label, size=9, bold=True, color=role_c[r], tracking=1.5)
+            # Role icon in top-right of tile (BPMN icon set from old project)
+            icon_map = {'BOT': BPMN_ROBOT, 'AGENT': BPMN_AGENT, 'HUMAN': BPMN_PERSON}
+            icon_path = icon_map.get(r)
+            if icon_path and icon_path.exists():
+                icon_size = 0.22
+                icon_x = x + tile_w - icon_size - 0.10
+                icon_y = step_y + 0.10
+                slide.shapes.add_picture(str(icon_path), Inches(icon_x), Inches(icon_y),
+                                          width=Inches(icon_size), height=Inches(icon_size))
             ds = desc_size_for_step(desc, tile_w)
             _text(slide, x+0.14, step_y+0.34, tile_w-0.24, step_h-0.38,
                   desc, size=ds, bold=True, color=T['TEXT'])

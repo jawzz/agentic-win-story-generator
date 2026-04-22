@@ -540,10 +540,13 @@
       '<button type="button" class="remove-btn">x</button>' +
     '</div>';
   }
+  const roleIconMap = { AGENT: '/icons/bpmn_agent.png', BOT: '/icons/bpmn_robot.png', HUMAN: '/icons/bpmn_person.png' };
   function buildRow_steps(role, description) {
     role = role || 'AGENT';
+    const iconSrc = roleIconMap[role];
     return '<div class="dynamic-item" data-list="steps">' +
-      '<select data-field="role" style="flex:0 0 110px">' +
+      '<img class="role-icon" src="' + iconSrc + '" alt="' + role + '" style="width:24px;height:24px;flex:0 0 auto"/>' +
+      '<select data-field="role" style="flex:0 0 92px" onchange="this.previousElementSibling.src = roleIconMap[this.value]">' +
         '<option value="AGENT"' + (role==='AGENT'?' selected':'') + '>AGENT</option>' +
         '<option value="BOT"'   + (role==='BOT'?' selected':'')   + '>BOT</option>' +
         '<option value="HUMAN"' + (role==='HUMAN'?' selected':'') + '>HUMAN</option>' +
