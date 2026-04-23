@@ -217,8 +217,22 @@
 
   /* dynamic lists */
   .dynamic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-  .dynamic-item { display: flex; gap: 8px; align-items: center; }
+  .dynamic-item { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .dynamic-item input, .dynamic-item select { margin-bottom: 0; }
+  .dynamic-item .derivation-note {
+    flex-basis: 100%;
+    font-size: 11px; color: var(--text-dim); line-height: 1.4;
+    padding: 2px 4px 2px 6px; margin-top: -2px;
+    border-left: 2px solid var(--teal);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dynamic-item .derivation-note .src-pill {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
+    background: rgba(11,162,179,0.15); color: var(--teal); text-transform: uppercase;
+  }
+  .dynamic-item .derivation-note.est .src-pill { background: rgba(218,145,0,0.18); color: var(--gold); }
+  .dynamic-item .derivation-note.est { border-left-color: var(--gold); }
   .dynamic-item .remove-btn {
     background: transparent; color: var(--text-dim);
     border: 1px solid var(--border); border-radius: 6px;
@@ -521,18 +535,32 @@
   });
 
   // ---------- Row builders ----------
-  function buildRow_problemStats(value, label) {
+  function derivationNote(source, note) {
+    const s = (source || '').toLowerCase();
+    if (s !== 'calculated' && s !== 'estimated') return '';
+    const isEst = s === 'estimated';
+    const pill = isEst ? 'EST' : 'CALC';
+    const cls = isEst ? 'derivation-note est' : 'derivation-note';
+    const text = note ? escapeHtml(note) : (isEst ? 'Estimated — verify with the AE or QBR deck.' : 'Calculated — verify source numbers.');
+    return '<div class="' + cls + '" data-source="' + escapeAttr(source) + '" data-note="' + escapeAttr(note || '') + '">' +
+      '<span class="src-pill">' + pill + '</span>' +
+      '<span>' + text + '</span>' +
+    '</div>';
+  }
+  function buildRow_problemStats(value, label, source, note) {
     return '<div class="dynamic-item" data-list="problemStats">' +
       '<input type="text" placeholder="Value (e.g. 12%+)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 32%"/>' +
       '<input type="text" placeholder="Label (e.g. claims denied annually)" value="' + escapeAttr(label) + '" data-field="label" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
+      derivationNote(source, note) +
     '</div>';
   }
-  function buildRow_outcomes(value, label) {
+  function buildRow_outcomes(value, label, source, note) {
     return '<div class="dynamic-item" data-list="outcomes">' +
       '<input type="text" placeholder="Value (e.g. $558K)" value="' + escapeAttr(value) + '" data-field="value" style="flex:0 0 32%"/>' +
       '<input type="text" placeholder="Label (e.g. revenue released)" value="' + escapeAttr(label) + '" data-field="label" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
+      derivationNote(source, note) +
     '</div>';
   }
   const roleIconMap = { AGENT: '/icons/bpmn_agent.png', BOT: '/icons/bpmn_robot.png', HUMAN: '/icons/bpmn_person.png' };
@@ -551,10 +579,10 @@
     '</div>';
   }
 
-  function addRow(listName, a, b) {
+  function addRow(listName, a, b, c, d) {
     const el = document.getElementById(listName);
     const builder = { problemStats: buildRow_problemStats, outcomes: buildRow_outcomes, steps: buildRow_steps }[listName];
-    el.insertAdjacentHTML('beforeend', builder(a, b));
+    el.insertAdjacentHTML('beforeend', builder(a, b, c, d));
   }
 
   document.querySelectorAll('.add-stat, .add-btn').forEach(btn => {
@@ -714,11 +742,11 @@
       updateCapabilitiesPreview();
     }
     document.getElementById('problemStats').innerHTML = '';
-    (d.problem_stats || []).forEach(s => addRow('problemStats', s.value, s.label));
+    (d.problem_stats || []).forEach(s => addRow('problemStats', s.value, s.label, s.source, s.note));
     document.getElementById('steps').innerHTML = '';
     (d.steps || []).forEach(s => addRow('steps', (s.role || s.type || 'AGENT').toUpperCase(), s.description || s.name || ''));
     document.getElementById('outcomes').innerHTML = '';
-    (d.outcomes || []).forEach(o => addRow('outcomes', o.value, o.label));
+    (d.outcomes || []).forEach(o => addRow('outcomes', o.value, o.label, o.source, o.note));
 
     // Attributable / Downstream: accept array, string, or {text} object
     function impactArrayToText(arr) {

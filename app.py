@@ -22,19 +22,30 @@ CORS(app)
 
 EXTRACTION_PROMPT = """You are a UiPath customer success writer. A rep has shared raw notes about an agentic automation win. Transform these notes into a polished, structured story for a single-slide agent use case template.
 
-CRITICAL ANTI-FABRICATION RULES (read first, violations disqualify the output):
-1. NEVER invent numerical metrics. Do not write "80% reduction", "$500K saved", "3x faster", "50 FTEs reclaimed", or any specific number unless that exact number (or something clearly equivalent) is in the notes. If the rep didn't give you the number, it doesn't go in the slide. Period.
-2. NEVER invent capabilities, products, or steps that aren't described. If the notes don't mention IXP, don't add IXP. If the notes don't mention Action Center, don't add it. Stick to what's actually there.
-3. NEVER invent agents, bots, or humans in the process. Only include roles the notes describe.
-4. Qualitative labels WITHOUT numbers are fine (e.g. "cycle time reduced", "faster resolution", "fewer errors", "manual toil eliminated"). Use these when directional improvement is implied but not quantified. Put them in labels on outcome tiles with a qualitative value like "Yes", "Faster", "Reduced" — or leave outcomes short and honest rather than fabricating a percentage.
-5. If you have fewer than 2 real quantitative metrics, return an empty outcomes array OR use qualitative-only tiles. Better to show 2 honest tiles than 5 fabricated ones.
-6. If the notes are thin, produce a thin output. Don't paper over gaps. The Maggie suggestions feature will flag the gaps and the rep can go find the real data.
+TRANSPARENCY RULES FOR NUMBERS (follow carefully):
+Every numerical metric (in problem_stats or outcomes) MUST be tagged with a "source" indicating where it came from:
+- "stated"     = the exact number (or clear equivalent) appears in the notes. No derivation needed.
+- "calculated" = you did simple arithmetic from numbers in the notes. Show the math in "note".
+- "estimated"  = you inferred a plausible number from industry benchmarks or scope context. Label as estimate in "note".
+- "qualitative"= no number given and none can be responsibly estimated. Use a word like "Reduced", "Faster", "Yes" as the value and leave source=qualitative.
+
+RULES:
+1. Every outcome and problem_stat item MUST have a "source" field.
+2. Items with source = "calculated" or "estimated" MUST have a "note" field (max ~80 chars) explaining the derivation. Examples:
+   - "From $500K/yr budget ÷ 12 months"
+   - "Industry avg for claim triage (est.)"
+   - "3,000 tickets × $120 handle cost"
+3. Items with source = "stated" should still include a short "note" only if helpful (e.g. "per rep notes"). Usually the note can be empty.
+4. Prefer "stated" whenever possible. Use "calculated" when basic arithmetic is obvious. Use "estimated" sparingly — and when you do, be honest about it in the note.
+5. Never fabricate a specific number with source = "stated". That's a lie. If the rep didn't give you the number, mark it "estimated" or "calculated" and show your work, or use qualitative.
+6. Do not invent capabilities, products, steps, agents, bots, or humans that aren't described in the notes. Anti-fabrication still applies to NON-numeric fields.
+7. Encourage the rep to go find real numbers — every estimated/calculated outcome will show the derivation note in the UI so they can verify or replace it.
 
 Rules (follow strictly):
 - TITLE: SHORT and punchy. 3-6 words. Just the subject of the use case (e.g. "Medical claim adjudication", "Automating denials intake", "KYC refresh triage"). Do NOT include dollar amounts, percentages, or outcomes in the title - those go in the outcomes tiles. Default to the cleanest possible short title.
 - SUBTITLE: one line, 8-14 words, summarizing the actor orchestration (e.g. "Agents reason over denials; bots execute; humans approve the edge cases.")
 - PROBLEM DESCRIPTION: 2 concise sentences describing the pain. Professional tone. Max ~240 characters.
-- PROBLEM STATS: extract up to 4 quantitative problem metrics ONLY IF clearly stated in the notes (dollars, percentages, volumes, time). Format value cleanly (e.g. "$181", "12%+", "21 days"). Empty array if fewer than 2 are clearly stated. DO NOT fabricate.
+- PROBLEM STATS: up to 4 quantitative problem metrics (dollars, percentages, volumes, time). Each item: {value, label, source, note}. See transparency rules above. Prefer stated numbers. Empty array if you can't produce even one honestly.
 - SOLUTION DESCRIPTION: 1-2 concise sentences describing how agents, bots, and humans resolve the problem. Max ~220 characters.
 - CAPABILITIES: 3-6 UiPath product names/capabilities used. Canonical names (use these exactly):
     - "Agents" - AI reasoning, autonomous decisioning
@@ -52,7 +63,7 @@ Rules (follow strictly):
   - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
   - "HUMAN" = human in the loop (review, approve, sign-off)
   Step description: 3-6 words, imperative. When a step extracts data from documents/emails/forms, say IXP (never "Doc Understanding"). When a step orchestrates or routes work across agents/bots/humans, say Maestro. DO NOT invent steps, agents, bots, or humans that the notes don't mention. If the notes only describe 3 steps, return 3 steps.
-- OUTCOMES: 1-5 outcome tiles. Each: value + short label (e.g. "revenue released", "cycle time", "of workflow automated"). For VALUE: use the actual number from the notes (e.g. "$558K", "90%", "9 min"). If no specific number is given but directional improvement is implied, use a qualitative value like "Reduced", "Faster", "Fewer", "Yes" — NEVER make up a percentage or dollar amount. If the notes have no outcomes at all, return empty array.
+- OUTCOMES: 1-5 outcome tiles. Each item: {value, label, source, note}. See transparency rules above. Value examples: "$558K", "90%", "9 min", or qualitative "Reduced" / "Faster" / "Fewer" / "Yes". Label examples: "revenue released", "cycle time", "of workflow automated". Empty array if the notes truly have no outcomes.
 - ATTRIBUTABLE IMPACT (optional): list of directional metrics directly moved. Each item: {"direction": "up" | "down", "text": "metric name"}. 3-5 items. Empty list if none clearly inferable from the notes. Use "down" for reductions (cycle time, touches, backlogs) and "up" for improvements (yield, satisfaction, throughput). Only list metrics that the notes actually discuss or clearly imply — do NOT invent metrics the rep didn't mention.
 - DOWNSTREAM IMPACT (optional): list of second-order effects (staff retention, NPS, compliance posture). Same format as attributable. Empty list if none inferable.
 - BREADCRUMB: three items: [industry, function/department, use case name]
@@ -66,11 +77,11 @@ Return ONLY a valid JSON object. No markdown fences, no preamble:
   "subtitle": "string",
   "company": "string",
   "problem_desc": "string",
-  "problem_stats": [{"value": "string", "label": "string"}],
+  "problem_stats": [{"value": "string", "label": "string", "source": "stated|calculated|estimated|qualitative", "note": "string (required if calculated/estimated, else optional)"}],
   "solution_desc": "string",
   "capabilities": ["string", "..."],
   "steps": [{"role": "AGENT|BOT|HUMAN", "description": "short step name"}],
-  "outcomes": [{"value": "string", "label": "string"}],
+  "outcomes": [{"value": "string", "label": "string", "source": "stated|calculated|estimated|qualitative", "note": "string (required if calculated/estimated, else optional)"}],
   "attributable": [{"direction": "up|down", "text": "metric name"}],
   "downstream": [{"direction": "up|down", "text": "metric name"}],
   "theme": "light"
