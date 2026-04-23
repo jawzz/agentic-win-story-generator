@@ -791,15 +791,35 @@
   // ---------- Suggestions ----------
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  function renderSuggestions(d) {
+  // Simple 3-bucket classification: do they have KPIs + a coherent story?
+  function pickMaggie(data) {
+    const hasNum = s => /[\d]/.test(String(s || ''));
+    const kpis = (data.outcomes || []).filter(o => hasNum(o.value)).length;
+    const hasStory = ((data.problem_desc || '').length > 25) &&
+                     ((data.solution_desc || '').length > 25) &&
+                     ((data.steps || []).length >= 3);
+    if (kpis >= 2 && hasStory)     return { mood: 'happy',   line: "KPIs + a real story flow. This one's good." };
+    if (kpis >= 1 || hasStory)     return { mood: 'neutral', line: "Something's there, but it's thin. Tighten it." };
+    return                          { mood: 'sad',     line: "No KPIs, weak narrative. Go find numbers." };
+  }
+
+  function renderSuggestions(d, storyData) {
     const panel = document.getElementById('suggestionsPanel');
     const list = Array.isArray(d.suggestions) ? d.suggestions : [];
+    const mag = pickMaggie(storyData);
+    const imgSrc = '/images/maggie/maggie_' + mag.mood + '.png';
+    const header =
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">' +
+        '<img src="' + imgSrc + '" alt="" onerror="this.style.display=\'none\'" style="width:72px;height:72px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border)"/>' +
+        '<div style="flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.3">' + esc(mag.line) + '</div>' +
+      '</div>';
+
     if (!list.length) {
-      panel.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Story looks solid. No critical gaps found.</div>';
+      panel.innerHTML = header + '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">No critical gaps found. Ship it.</div>';
       panel.style.display = 'block';
       return;
     }
-    const parts = ['<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:10px">SUGGESTIONS</div>'];
+    const parts = [header, '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:10px">SUGGESTIONS</div>'];
     list.forEach(s => {
       const isHigh = (s.priority || '').toLowerCase() === 'high';
       const pillColor = isHigh ? 'var(--orange)' : 'var(--teal)';
@@ -836,7 +856,7 @@
       });
       if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Suggest failed'); }
       const out = await resp.json();
-      renderSuggestions(out);
+      renderSuggestions(out, data);
       status.textContent = '';
     } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
     finally { btn.disabled = false; }
