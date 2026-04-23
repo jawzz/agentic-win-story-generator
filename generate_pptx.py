@@ -270,7 +270,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
     plus_diameter = 0.22
     plus_gap = 0.22  # symmetric gap on both sides of the + icon
     plus_cx = ui_left - plus_gap - plus_diameter / 2
-    plus_cy = ui_center_y + 0.25  # nudge down to match UiPath wordmark visual center
+    plus_cy = ui_center_y + 0.34  # nudge down to match UiPath wordmark visual center (below sparkles)
     # Icon = black (or theme text color) — transparent inside of ring
     icon_color = text_color
     _draw_plus_circle(slide, plus_cx, plus_cy, plus_diameter, None, icon_color)
@@ -295,7 +295,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
                 c_w = c_max_w
                 c_h = c_w / ar_c
             cust_x = cust_right - c_w
-            cust_y = ui_center_y - c_h / 2 + 0.25
+            cust_y = ui_center_y - c_h / 2 + 0.34
             slide.shapes.add_picture(tmp.name, Inches(cust_x), Inches(cust_y),
                                      width=Inches(c_w), height=Inches(c_h))
         finally:
@@ -305,7 +305,7 @@ def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, compa
         # Customer as bold text, right-aligned to cust_right
         name_w = min(2.4, max(0.8, 0.14 * len(company_name) + 0.3))
         name_x = cust_right - name_w
-        name_y = ui_center_y + 0.09
+        name_y = ui_center_y + 0.18
         _text(slide, name_x, name_y, name_w, 0.38, company_name,
               size=15, bold=True, color=text_color, align='right', anchor='middle')
 

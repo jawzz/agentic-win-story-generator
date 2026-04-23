@@ -16,6 +16,7 @@
     --text-dim: #5C7480;
     --orange: #FA4616;
     --teal: #0BA2B3;
+    --deep-blue: #1E6482;
     --gold: #DA9100;
     --red: #E53E3E;
   }
@@ -127,6 +128,12 @@
     padding: 12px 20px; font-size: 13px; font-weight: 500;
   }
   .btn-outline:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-blue {
+    background: var(--deep-blue); color: white;
+    padding: 12px 20px; font-size: 13px; font-weight: 600;
+  }
+  .btn-blue:hover { background: #175167; }
+  .btn-blue:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .or-divider {
     display: flex; align-items: center; gap: 14px;
@@ -262,7 +269,7 @@
   <img src="/uipath-logo.svg" alt="UiPath"/>
   <span class="topbar-sep">|</span>
   <span class="topbar-title">Agentic Win Story Generator</span>
-  <span style="margin-left:10px;padding:3px 8px;background:rgba(250,70,22,0.2);color:var(--orange);border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;font-family:monospace">BUILD-20260423-023110</span>
+  <span style="margin-left:10px;padding:3px 8px;background:rgba(250,70,22,0.2);color:var(--orange);border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;font-family:monospace">BUILD-20260423-024912</span>
   <span class="topbar-spacer"></span>
   <button class="topbar-action" onclick="clearAll()">New Story</button>
 </div>
@@ -492,26 +499,14 @@
   </div>
 
 
-  <!-- Suggestions (AI-powered data hints) -->
-  <div class="card">
-    <div class="card-hd" data-toggle>
-      <span class="badge opt">Optional</span>
-      <span class="card-title">&#128161; Get suggestions</span>
-      <span class="card-chev">&#9660;</span>
-    </div>
-    <div class="card-bd">
-      <p style="font-size:11px;color:var(--text-dim);margin:10px 0 8px;line-height:1.5">AI reviews your story and tells you what data to chase down, probing questions to ask, and story angles to strengthen the narrative.</p>
-      <button class="btn btn-teal sm" id="suggestBtn" type="button">Get suggestions</button>
-      <span class="intake-status" id="suggestStatus" style="margin-left:10px"></span>
-      <div id="suggestionsPanel" style="display:none;margin-top:14px"></div>
-    </div>
-  </div>
-
   <div class="form-actions">
     <button class="btn btn-red" id="generateBtn" type="button">Generate Slide</button>
+    <button class="btn btn-blue" id="suggestBtn" type="button">&#128161; Get suggestions</button>
     <button class="btn btn-outline" onclick="clearAll()" type="button">Clear</button>
     <div class="form-gen-status" id="generateStatus"></div>
   </div>
+  <div id="suggestStatus" class="intake-status" style="margin-top:8px"></div>
+  <div id="suggestionsPanel" style="display:none;margin-top:14px;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:10px"></div>
 
 </div>
 
