@@ -791,16 +791,19 @@
   // ---------- Suggestions ----------
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  // Simple 3-bucket classification: do they have KPIs + a coherent story?
+  // Tight rules:
+  //   HAPPY = 3+ numerical KPIs AND a described flow
+  //   SAD   = zero numerical KPIs OR no described flow
+  //   NEUTRAL = everything in between
   function pickMaggie(data) {
     const hasNum = s => /[\d]/.test(String(s || ''));
     const kpis = (data.outcomes || []).filter(o => hasNum(o.value)).length;
-    const hasStory = ((data.problem_desc || '').length > 25) &&
-                     ((data.solution_desc || '').length > 25) &&
-                     ((data.steps || []).length >= 3);
-    if (kpis >= 2 && hasStory)     return { mood: 'happy',   line: "KPIs + a real story flow. This one's good." };
-    if (kpis >= 1 || hasStory)     return { mood: 'neutral', line: "Something's there, but it's thin. Tighten it." };
-    return                          { mood: 'sad',     line: "No KPIs, weak narrative. Go find numbers." };
+    const hasFlow = ((data.problem_desc || '').trim().length > 25) &&
+                    ((data.solution_desc || '').trim().length > 25) &&
+                    ((data.steps || []).length >= 3);
+    if (kpis === 0 || !hasFlow)     return { mood: 'sad',     line: (kpis === 0 ? "No numerical KPIs." : "Flow isn't described.") + " Go dig." };
+    if (kpis >= 3 && hasFlow)        return { mood: 'happy',   line: "KPIs and a clear flow. This one's strong." };
+    return                            { mood: 'neutral', line: "Halfway there. Push for more numbers or tighten the flow." };
   }
 
   function renderSuggestions(d, storyData) {
