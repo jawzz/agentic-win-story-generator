@@ -262,7 +262,7 @@
   <img src="/uipath-logo.svg" alt="UiPath"/>
   <span class="topbar-sep">|</span>
   <span class="topbar-title">Agentic Win Story Generator</span>
-  <span style="margin-left:10px;padding:3px 8px;background:rgba(250,70,22,0.2);color:var(--orange);border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;font-family:monospace">BUILD-20260422-220758</span>
+  <span style="margin-left:10px;padding:3px 8px;background:rgba(250,70,22,0.2);color:var(--orange);border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;font-family:monospace">BUILD-20260423-023110</span>
   <span class="topbar-spacer"></span>
   <button class="topbar-action" onclick="clearAll()">New Story</button>
 </div>
@@ -384,7 +384,7 @@
       <div class="frow one">
         <div class="field">
           <label>Capabilities <span class="hint">comma-separated; pills auto-wrap in slide</span></label>
-          <input id="capabilitiesInput" type="text" placeholder="Agents, Unattended Robots, Doc Understanding, Action Center"/>
+          <input id="capabilitiesInput" type="text" placeholder="Agents, Maestro, IXP, Unattended Robots, Action Center"/>
           <div id="capabilitiesPreview" class="capabilities-tags"></div>
         </div>
       </div>
@@ -792,6 +792,84 @@
       status.textContent = 'Steps populated.';
       updateDots();
     } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
+  };
+
+  // ---------- Suggestions ----------
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function renderSuggestions(d) {
+    const panel = document.getElementById('suggestionsPanel');
+    const parts = [];
+    if (d.topSuggestion) {
+      parts.push(
+        '<div style="padding:12px 14px;border-radius:8px;background:rgba(250,70,22,0.08);border-left:3px solid var(--orange);margin-bottom:14px">' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--orange);margin-bottom:4px">TOP SUGGESTION</div>' +
+        '<div style="font-size:14px;line-height:1.45">' + esc(d.topSuggestion) + '</div>' +
+        '</div>'
+      );
+    }
+    if (Array.isArray(d.missingData) && d.missingData.length) {
+      parts.push('<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">MISSING DATA</div>');
+      d.missingData.forEach(m => {
+        parts.push(
+          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
+          '<div><strong>' + esc(m.what || '') + '</strong>' + (m.where ? ' <span style="color:var(--muted)">&middot; ' + esc(m.where) + '</span>' : '') + '</div>' +
+          (m.why ? '<div style="color:var(--muted);font-size:12px;margin-top:2px">' + esc(m.why) + '</div>' : '') +
+          '</div>'
+        );
+      });
+      parts.push('</div>');
+    }
+    if (Array.isArray(d.agenticValue) && d.agenticValue.length) {
+      parts.push('<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">AGENTIC VALUE PROBES</div>');
+      d.agenticValue.forEach(a => {
+        parts.push(
+          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
+          '<div><strong>Q:</strong> ' + esc(a.question || '') + '</div>' +
+          (a.insight ? '<div style="color:var(--muted);font-size:12px;margin-top:2px"><strong>Reveals:</strong> ' + esc(a.insight) + '</div>' : '') +
+          '</div>'
+        );
+      });
+      parts.push('</div>');
+    }
+    if (Array.isArray(d.storyAngles) && d.storyAngles.length) {
+      parts.push('<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">STORY ANGLES</div>');
+      d.storyAngles.forEach(s => {
+        parts.push(
+          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
+          '<div><strong>' + esc(s.angle || '') + '</strong></div>' +
+          (s.suggestion ? '<div style="color:var(--muted);font-size:12px;margin-top:2px">' + esc(s.suggestion) + '</div>' : '') +
+          '</div>'
+        );
+      });
+      parts.push('</div>');
+    }
+    if (!parts.length) parts.push('<div style="color:var(--muted);font-size:13px">No suggestions returned.</div>');
+    panel.innerHTML = parts.join('');
+    panel.style.display = 'block';
+  }
+
+  document.getElementById('suggestBtn').onclick = async () => {
+    const status = document.getElementById('suggestStatus');
+    const btn = document.getElementById('suggestBtn');
+    const data = collectData();
+    if (!data.title && !data.problem_desc && !data.solution_desc) {
+      status.textContent = 'Fill in some of the form first.'; status.classList.add('err'); return;
+    }
+    status.textContent = 'Thinking...'; status.classList.remove('err');
+    btn.disabled = true;
+    try {
+      const resp = await fetch('/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Suggest failed'); }
+      const out = await resp.json();
+      renderSuggestions(out);
+      status.textContent = '';
+    } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
+    finally { btn.disabled = false; }
   };
 
   document.getElementById('generateBtn').onclick = async () => {
