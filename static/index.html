@@ -269,7 +269,6 @@
   <img src="/uipath-logo.svg" alt="UiPath"/>
   <span class="topbar-sep">|</span>
   <span class="topbar-title">Agentic Win Story Generator</span>
-  <span style="margin-left:10px;padding:3px 8px;background:rgba(250,70,22,0.2);color:var(--orange);border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;font-family:monospace">BUILD-20260423-024912</span>
   <span class="topbar-spacer"></span>
   <button class="topbar-action" onclick="clearAll()">New Story</button>
 </div>
@@ -794,52 +793,28 @@
 
   function renderSuggestions(d) {
     const panel = document.getElementById('suggestionsPanel');
-    const parts = [];
-    if (d.topSuggestion) {
+    const list = Array.isArray(d.suggestions) ? d.suggestions : [];
+    if (!list.length) {
+      panel.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Story looks solid. No critical gaps found.</div>';
+      panel.style.display = 'block';
+      return;
+    }
+    const parts = ['<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:10px">SUGGESTIONS</div>'];
+    list.forEach(s => {
+      const isHigh = (s.priority || '').toLowerCase() === 'high';
+      const pillColor = isHigh ? 'var(--orange)' : 'var(--teal)';
+      const pillText = isHigh ? 'HIGH' : 'IDEA';
       parts.push(
-        '<div style="padding:12px 14px;border-radius:8px;background:rgba(250,70,22,0.08);border-left:3px solid var(--orange);margin-bottom:14px">' +
-        '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--orange);margin-bottom:4px">TOP SUGGESTION</div>' +
-        '<div style="font-size:14px;line-height:1.45">' + esc(d.topSuggestion) + '</div>' +
+        '<div style="padding:10px 12px;border:1px solid var(--border);border-left:3px solid ' + pillColor + ';border-radius:6px;margin-bottom:8px;background:var(--panel-2)">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+            '<span style="font-size:9px;font-weight:700;letter-spacing:1px;color:' + pillColor + '">' + pillText + '</span>' +
+            '<span style="font-size:14px;font-weight:600">' + esc(s.title || '') + '</span>' +
+          '</div>' +
+          (s.detail ? '<div style="font-size:12px;color:var(--text-muted);line-height:1.45;margin-bottom:' + (s.tip ? '4px' : '0') + '">' + esc(s.detail) + '</div>' : '') +
+          (s.tip ? '<div style="font-size:11px;color:var(--text-dim);line-height:1.4"><span style="color:var(--text-muted);font-weight:600">&rarr; </span>' + esc(s.tip) + '</div>' : '') +
         '</div>'
       );
-    }
-    if (Array.isArray(d.missingData) && d.missingData.length) {
-      parts.push('<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">MISSING DATA</div>');
-      d.missingData.forEach(m => {
-        parts.push(
-          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
-          '<div><strong>' + esc(m.what || '') + '</strong>' + (m.where ? ' <span style="color:var(--muted)">&middot; ' + esc(m.where) + '</span>' : '') + '</div>' +
-          (m.why ? '<div style="color:var(--muted);font-size:12px;margin-top:2px">' + esc(m.why) + '</div>' : '') +
-          '</div>'
-        );
-      });
-      parts.push('</div>');
-    }
-    if (Array.isArray(d.agenticValue) && d.agenticValue.length) {
-      parts.push('<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">AGENTIC VALUE PROBES</div>');
-      d.agenticValue.forEach(a => {
-        parts.push(
-          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
-          '<div><strong>Q:</strong> ' + esc(a.question || '') + '</div>' +
-          (a.insight ? '<div style="color:var(--muted);font-size:12px;margin-top:2px"><strong>Reveals:</strong> ' + esc(a.insight) + '</div>' : '') +
-          '</div>'
-        );
-      });
-      parts.push('</div>');
-    }
-    if (Array.isArray(d.storyAngles) && d.storyAngles.length) {
-      parts.push('<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:6px">STORY ANGLES</div>');
-      d.storyAngles.forEach(s => {
-        parts.push(
-          '<div style="padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:6px;margin-bottom:6px;font-size:13px;line-height:1.45">' +
-          '<div><strong>' + esc(s.angle || '') + '</strong></div>' +
-          (s.suggestion ? '<div style="color:var(--muted);font-size:12px;margin-top:2px">' + esc(s.suggestion) + '</div>' : '') +
-          '</div>'
-        );
-      });
-      parts.push('</div>');
-    }
-    if (!parts.length) parts.push('<div style="color:var(--muted);font-size:13px">No suggestions returned.</div>');
+    });
     panel.innerHTML = parts.join('');
     panel.style.display = 'block';
   }
