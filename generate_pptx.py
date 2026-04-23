@@ -531,8 +531,8 @@ def _build_slide(slide, *, theme, data):
             icon_path = icon_map.get(r)
             if icon_path and icon_path.exists():
                 icon_size = 0.22
-                icon_x = x + tile_w - icon_size - 0.10
-                icon_y = step_y + 0.10
+                icon_x = x + tile_w - icon_size - 0.06  # nudged ~4px right
+                icon_y = step_y + 0.06                  # nudged ~4px up
                 slide.shapes.add_picture(str(icon_path), Inches(icon_x), Inches(icon_y),
                                           width=Inches(icon_size), height=Inches(icon_size))
             ds = desc_size_for_step(desc, tile_w)
