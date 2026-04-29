@@ -137,7 +137,7 @@
 
   .or-divider {
     display: flex; align-items: center; gap: 14px;
-    margin: 20px 0 14px; color: var(--text-dim); font-size: 11px;
+    margin: 8px 0 6px; color: var(--text-dim); font-size: 11px;
   }
   .or-divider::before, .or-divider::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
@@ -196,19 +196,19 @@
   .frow.one { grid-template-columns: 1fr; }
   .frow.three { grid-template-columns: 1fr 1fr 1fr; }
   .field label {
-    display: block; font-size: 11px; color: var(--text-muted);
-    font-weight: 500; margin-bottom: 4px;
+    display: block; font-size: 12px; color: var(--text-muted);
+    font-weight: 500; margin-bottom: 5px;
   }
   .field .hint, .hint {
-    font-size: 10px; color: var(--text-dim); font-weight: 400; font-style: italic;
+    font-size: 11px; color: var(--text-dim); font-weight: 400; font-style: italic;
   }
   .req-star { color: var(--orange); margin-left: 2px; }
   input[type=text], textarea, select {
     width: 100%;
     background: var(--bg); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px;
-    padding: 9px 11px;
-    font-family: inherit; font-size: 13px;
+    padding: 10px 12px;
+    font-family: inherit; font-size: 14px;
     outline: none; transition: border-color .15s;
   }
   input:focus, textarea:focus, select:focus { border-color: var(--teal); }
@@ -366,25 +366,22 @@
           <input id="subtitle" type="text" placeholder="e.g. Agents reason over denials; bots execute; humans approve the edge cases." maxlength="140"/>
         </div>
       </div>
-      <div class="frow one" style="margin-top:8px;padding:12px;background:rgba(229,62,62,0.06);border:1px solid rgba(229,62,62,0.25);border-radius:8px">
+      <div class="frow one" style="margin-top:8px;padding:14px;background:rgba(229,62,62,0.06);border:1px solid rgba(229,62,62,0.25);border-radius:8px">
         <div class="field">
-          <label style="color:var(--red,#E53E3E)">Sharing classification <span class="req-star">*</span> <span class="hint">required before generate</span></label>
-          <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px">
-            <label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;font-weight:500;margin:0">
-              <input type="radio" name="classification" value="external" id="classExternal" style="margin:0;width:auto"/>
-              External-shareable (no tag)
-            </label>
-            <label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;font-weight:500;margin:0">
-              <input type="radio" name="classification" value="internal" id="classInternal" style="margin:0;width:auto"/>
-              Internal only (red tag)
-            </label>
+          <label style="color:var(--red,#E53E3E);font-size:14px">Sharing classification <span class="req-star">*</span> <span class="hint">required before generate</span></label>
+          <div class="class-tabs" style="display:flex;gap:0;margin-top:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+            <button type="button" class="class-tab" data-class="external" style="flex:1;padding:11px 14px;background:transparent;border:none;border-right:1px solid var(--border);color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s">External-shareable</button>
+            <button type="button" class="class-tab" data-class="anonymize" style="flex:1;padding:11px 14px;background:transparent;border:none;border-right:1px solid var(--border);color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s">Anonymize</button>
+            <button type="button" class="class-tab" data-class="internal" style="flex:1;padding:11px 14px;background:transparent;border:none;color:var(--text-muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s">Internal only</button>
           </div>
-          <div id="anonymizeRow" style="display:none;margin-top:10px;padding-left:8px;border-left:2px solid var(--red,#E53E3E)">
-            <label style="display:flex;gap:6px;align-items:flex-start;cursor:pointer;font-size:13px;margin:0">
-              <input type="checkbox" id="anonymize" style="margin:3px 0 0 0;width:auto;flex-shrink:0"/>
-              <span>Anonymize customer (strip logo + replace name with &ldquo;[Industry] Customer&rdquo;)</span>
-            </label>
-          </div>
+          <div id="classDescription" style="margin-top:8px;font-size:11px;color:var(--text-dim);line-height:1.4;min-height:28px"></div>
+          <input type="hidden" id="classificationValue" value=""/>
+        </div>
+      </div>
+      <div class="frow one">
+        <div class="field">
+          <label>Account team contact <span class="req-star">*</span> <span class="hint">Name + email is enough; lands in slide speaker notes</span></label>
+          <input id="accountTeam" type="text" placeholder="e.g. Jane Doe, jane@uipath.com"/>
         </div>
       </div>
     </div>
@@ -723,8 +720,7 @@
 
   // ---------- Data collection ----------
   function getClassification() {
-    const r = document.querySelector('input[name="classification"]:checked');
-    return r ? r.value : '';
+    return document.getElementById('classificationValue').value || '';
   }
 
   function collectData() {
@@ -738,9 +734,10 @@
       title: document.getElementById('title').value.trim(),
       subtitle: document.getElementById('subtitle').value.trim(),
       company: document.getElementById('company').value.trim(),
+      account_team: document.getElementById('accountTeam').value.trim(),
       classification: cls,
-      internal: cls === 'internal',
-      anonymize: cls === 'internal' && document.getElementById('anonymize').checked,
+      internal: cls === 'internal' || cls === 'anonymize',
+      anonymize: cls === 'anonymize',
       problem_desc: document.getElementById('problemDesc').value.trim(),
       problem_stats: collectListItems('problemStats', ['value','label']),
       solution_desc: document.getElementById('solutionDesc').value.trim(),
@@ -753,12 +750,29 @@
     };
   }
 
-  // Toggle anonymize row when Internal selected
-  document.querySelectorAll('input[name="classification"]').forEach(r => {
-    r.addEventListener('change', () => {
-      const row = document.getElementById('anonymizeRow');
-      row.style.display = (r.value === 'internal' && r.checked) ? 'block' : 'none';
+  // Classification tabs
+  const CLASS_DESCRIPTIONS = {
+    external: 'Free to share with customers and prospects. No tag added.',
+    anonymize: 'Strips the customer logo and renames to "[Industry] Customer". Adds an internal-use tag.',
+    internal: 'For internal teams only. Customer info preserved. Adds a "FOR INTERNAL USE ONLY" tag.',
+  };
+  function setClassification(val) {
+    document.getElementById('classificationValue').value = val;
+    document.querySelectorAll('.class-tab').forEach(b => {
+      const isActive = b.dataset.class === val;
+      const colors = { external: '#0BA2B3', anonymize: '#DA9100', internal: '#E53E3E' };
+      if (isActive) {
+        b.style.background = colors[val];
+        b.style.color = '#fff';
+      } else {
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-muted)';
+      }
     });
+    document.getElementById('classDescription').textContent = CLASS_DESCRIPTIONS[val] || '';
+  }
+  document.querySelectorAll('.class-tab').forEach(b => {
+    b.addEventListener('click', () => setClassification(b.dataset.class));
   });
 
   function collectListItems(listName, fields) {
@@ -1007,7 +1021,8 @@
     const data = collectData();
     if (!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
     if (!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
-    if (!data.classification) { status.textContent = 'Pick Internal or External-shareable in the Customer card.'; status.classList.add('err'); return; }
+    if (!data.classification) { status.textContent = 'Pick a sharing classification (External / Anonymize / Internal).'; status.classList.add('err'); return; }
+    if (!data.account_team) { status.textContent = 'Account team contact (CSM/AE/TAM/SE) is required.'; status.classList.add('err'); return; }
     status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
     try {

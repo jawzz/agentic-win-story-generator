@@ -31,7 +31,7 @@ DARK = {
     'BG':C('14222A'),'CARD_BG':C('1E3038'),'CARD_BG_2':C('253A45'),'CARD_BG_3':C('2E4552'),
     'DIVIDER':C('2A3F4A'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('7A2E18'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('0E5C68'),'GOLD':C('DA9100'),
-    'GREEN':C('5BBE82'),'RED':C('E53E3E'),
+    'GREEN':C('5BBE82'),'RED':C('E53E3E'),'DEEP_BLUE':C('1E6482'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('FFFFFF'),
     'TEXT_MUTED':C('8AABB5'),'TEXT_DIM':C('5C7480'),
     'OUTCOME_FILL':C('FA4616'),
@@ -40,7 +40,7 @@ LIGHT = {
     'BG':C('F7F8FA'),'CARD_BG':C('FFFFFF'),'CARD_BG_2':C('EDEFF2'),'CARD_BG_3':C('FFFFFF'),
     'DIVIDER':C('D8DDE3'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('0BA2B3'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('1E6482'),'GOLD':C('DA9100'),
-    'GREEN':C('5BBE82'),'RED':C('D43A2C'),
+    'GREEN':C('5BBE82'),'RED':C('D43A2C'),'DEEP_BLUE':C('1E6482'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('1A2330'),
     'TEXT_MUTED':C('5A6B78'),'TEXT_DIM':C('8A98A5'),
     'OUTCOME_FILL':C('FA4616'),
@@ -246,9 +246,14 @@ def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
 def _draw_tags(slide, T, data, divider_y):
     """Render small pill tags (INTERNAL, MAESTRO, EASY PROCESS) just above the divider on the right."""
     tags = []
-    # Internal flag
-    if data.get('internal') or data.get('classification') == 'internal':
-        tags.append(('INTERNAL', T['RED']))
+    # Classification flag — three states
+    cls = (data.get('classification') or '').lower()
+    if cls == 'internal':
+        tags.append(('FOR INTERNAL USE ONLY', T['RED']))
+    elif cls == 'anonymize' or data.get('anonymize'):
+        tags.append(('FOR INTERNAL USE ONLY', T['RED']))
+    elif data.get('internal'):
+        tags.append(('FOR INTERNAL USE ONLY', T['RED']))
     # Maestro pill is rendered on the solution card now, not in the top-right row.
     # Easy process — explicit flag OR auto-detect (<=5 steps, no AGENT, no IXP)
     easy_flag = data.get('easy_process')
@@ -264,26 +269,39 @@ def _draw_tags(slide, T, data, divider_y):
 
     if not tags:
         return
-    # Render as a horizontal row, right-aligned, just above the divider
-    pill_h = 0.28
-    pill_pad_x = 0.18
-    gap = 0.10
-    y = divider_y - pill_h - 0.10
-    # Compute total width
-    char_w = 0.075
-    widths = [pill_pad_x*2 + len(label)*char_w for (label, _) in tags]
-    total = sum(widths) + gap * (len(tags) - 1)
+    # Render as a horizontal row, right-aligned, just above the divider.
+    # Pills are sized per-tag — INTERNAL pill is bigger to be unmissable.
+    gap = 0.12
+    y_anchor_bottom = divider_y - 0.10
+    char_w_big = 0.085
+    char_w_small = 0.075
+    pill_pad_big = 0.22
+    pill_pad_small = 0.18
+    sized = []
+    for (label, color) in tags:
+        if 'INTERNAL' in label:
+            h = 0.36
+            w = pill_pad_big*2 + len(label) * char_w_big
+            font_size = 11
+        else:
+            h = 0.28
+            w = pill_pad_small*2 + len(label) * char_w_small
+            font_size = 9
+        sized.append((label, color, w, h, font_size))
+    total = sum(s[2] for s in sized) + gap * (len(sized) - 1)
     right_edge = 13.333 - 0.5
     x = right_edge - total
-    for (label, color), w in zip(tags, widths):
+    for (label, color, w, h, font_size) in sized:
+        # Bottom-align all pills so they share the same baseline
+        y = y_anchor_bottom - h
         s = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
-                                    Inches(x), Inches(y), Inches(w), Inches(pill_h))
+                                    Inches(x), Inches(y), Inches(w), Inches(h))
         s.adjustments[0] = 0.5
         s.fill.solid(); s.fill.fore_color.rgb = color
         s.line.fill.background()
         s.shadow.inherit = False
-        _text(slide, x, y, w, pill_h, label, size=9, bold=True,
-              color=T['WHITE'], align='center', anchor='middle', tracking=1.0)
+        _text(slide, x, y, w, h, label, size=font_size, bold=True,
+              color=T['WHITE'], align='center', anchor='middle', tracking=1.2)
         x += w + gap
 
 
@@ -486,23 +504,6 @@ def _build_slide(slide, *, theme, data):
     _text(slide, sx0+0.35, row_y+0.18, col_w-0.7, 0.38,
           'The solution', size=18, bold=True, color=T['WHITE'])
 
-    # MAESTRO pill in top-right corner of the solution card, if Maestro is in play
-    _caps_for_maestro = [str(c).lower() for c in (data.get('capabilities') or [])]
-    if data.get('maestro') or any('maestro' in c for c in _caps_for_maestro):
-        m_label = 'MAESTRO'
-        m_w = 0.18*2 + len(m_label)*0.075
-        m_h = 0.26
-        m_x = sx0 + col_w - m_w - 0.30
-        m_y = row_y + 0.22
-        m_pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
-                                         Inches(m_x), Inches(m_y), Inches(m_w), Inches(m_h))
-        m_pill.adjustments[0] = 0.5
-        m_pill.fill.solid(); m_pill.fill.fore_color.rgb = T['WHITE']
-        m_pill.line.fill.background()
-        m_pill.shadow.inherit = False
-        _text(slide, m_x, m_y, m_w, m_h, m_label, size=9, bold=True,
-              color=T['TEAL_CARD'], align='center', anchor='middle', tracking=1.2)
-
     pills = data.get('capabilities') or []
     max_pill_area_w = col_w - 0.7
     rows = [[]]; row_w = 0.0
@@ -551,6 +552,23 @@ def _build_slide(slide, *, theme, data):
     _text(slide, 0.7, cy+0.12, 8.0, 0.30,
           'What the automation does', size=15, bold=True, color=T['TEXT'])
 
+    # MAESTRO pill in the top-right of "What the automation does" card, if Maestro is in play
+    _caps_for_maestro = [str(c).lower() for c in (data.get('capabilities') or [])]
+    if data.get('maestro') or any('maestro' in c for c in _caps_for_maestro):
+        m_label = 'MAESTRO'
+        m_w = 0.18*2 + len(m_label)*0.075
+        m_h = 0.28
+        m_x = 0.5 + 12.33 - m_w - 0.30
+        m_y = cy + 0.13
+        m_pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
+                                         Inches(m_x), Inches(m_y), Inches(m_w), Inches(m_h))
+        m_pill.adjustments[0] = 0.5
+        m_pill.fill.solid(); m_pill.fill.fore_color.rgb = T['DEEP_BLUE']
+        m_pill.line.fill.background()
+        m_pill.shadow.inherit = False
+        _text(slide, m_x, m_y, m_w, m_h, m_label, size=9, bold=True,
+              color=T['WHITE'], align='center', anchor='middle', tracking=1.2)
+
     steps = data.get('steps') or []
     norm_steps = []
     for st in steps:
@@ -558,12 +576,16 @@ def _build_slide(slide, *, theme, data):
             role = (st.get('role') or st.get('type') or 'AGENT').upper()
             if role in ('ROBOT',): role = 'BOT'
             if role in ('PERSON',): role = 'HUMAN'
-            if role not in ('AGENT', 'BOT', 'HUMAN'):
+            # Accept AGENT, BOT, HUMAN, IXP — anything else falls back to AGENT
+            if role not in ('AGENT', 'BOT', 'HUMAN', 'IXP'):
                 role = 'AGENT'
             desc = (st.get('description') or st.get('name') or '').strip()
             norm_steps.append((role, desc))
         elif isinstance(st, (list, tuple)) and len(st) >= 2:
-            norm_steps.append((str(st[0]).upper(), str(st[1])))
+            r = str(st[0]).upper()
+            if r not in ('AGENT', 'BOT', 'HUMAN', 'IXP'):
+                r = 'AGENT'
+            norm_steps.append((r, str(st[1])))
 
     # SWAPPED COLORS: BOT=orange, AGENT=teal, HUMAN=gold, IXP=green
     role_c = {'BOT': T['ORANGE'], 'AGENT': T['TEAL'], 'HUMAN': T['GOLD'], 'IXP': T['GREEN']}
@@ -667,9 +689,9 @@ def _build_slide(slide, *, theme, data):
             tx = 0.5 + i*(tw2 + tg)
             _rect(slide, tx, tile_y, tw2, tile_h_out, T['OUTCOME_FILL'])
             _text(slide, tx+0.32, tile_y+0.08, tw2-0.5, 0.42,
-                  num, size=30, bold=True, color=T['WHITE'])
+                  num, size=30, bold=True, color=T['WHITE'], anchor='middle')
             _text(slide, tx+0.32, tile_y+0.52, tw2-0.5, 0.40,
-                  label, size=11, color=T['CREAM'])
+                  label, size=11, color=T['CREAM'], anchor='middle')
         outcomes_bottom = tile_y + tile_h_out
     else:
         outcomes_bottom = oy + 0.30
@@ -751,6 +773,27 @@ def build_pptx(data, template_path=None):
     p.slide_height = Inches(7.5)
     slide = p.slides.add_slide(p.slide_layouts[6])
     _build_slide(slide, theme=theme, data=data)
+
+    # Speaker notes — account team contact + classification metadata
+    notes_lines = []
+    if data.get('account_team'):
+        notes_lines.append(f"Account team contact: {data['account_team']}")
+    cls = (data.get('classification') or '').strip()
+    if cls:
+        notes_lines.append(f"Sharing classification: {cls}")
+    if data.get('company'):
+        notes_lines.append(f"Customer: {data['company']}")
+    bc = data.get('breadcrumb') or []
+    if len(bc) >= 2:
+        notes_lines.append(f"Industry / Function: {bc[0]} / {bc[1]}")
+    caps = data.get('capabilities') or []
+    if caps:
+        notes_lines.append(f"Capabilities: {', '.join(str(c) for c in caps)}")
+    if notes_lines:
+        try:
+            slide.notes_slide.notes_text_frame.text = '\n'.join(notes_lines)
+        except Exception:
+            pass
 
     buf = io.BytesIO()
     p.save(buf)

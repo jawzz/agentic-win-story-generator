@@ -231,14 +231,27 @@ def _enforce_capability_rules(parsed, source_text):
 
     parsed['capabilities'] = caps
 
-    # Step-level: rewrite BOT steps that look like document/communication processing as IXP
-    doc_step_words = ('extract', 'parse', 'read', 'classify', 'intake', 'ingest', 'triage')
+    # Step-level: rewrite ANY step that looks like document/communication intake as IXP,
+    # regardless of original role (BOT or AGENT).
+    doc_action_words = (
+        'extract', 'parse', 'read', 'classify', 'intake', 'ingest', 'triage',
+        'retrieve', 'fetch', 'pull', 'process', 'capture', 'index', 'ocr',
+    )
+    doc_object_words = (
+        'document', 'doc', 'pdf', 'email', 'invoice', 'claim', 'form', 'fax',
+        'transcript', 'communication', 'ixp', 'ack', 'asn', 'edi', 'attachment',
+        'po ', 'purchase order', 'receipt', 'statement', 'contract', 'rfq',
+        'rfp', 'remittance',
+    )
     for s in steps:
         if not isinstance(s, dict):
             continue
         role = str(s.get('role','')).upper()
+        if role == 'IXP':
+            continue
         desc = str(s.get('description','')).lower()
-        if role == 'BOT' and any(t in desc for t in ('document', 'doc', 'pdf', 'email', 'invoice', 'claim', 'form', 'fax', 'transcript', 'communication', 'ixp')) and any(w in desc for w in doc_step_words):
+        # IXP if step describes acting on a document/communication artifact
+        if any(t in desc for t in doc_object_words) and any(w in desc for w in doc_action_words):
             s['role'] = 'IXP'
 
     return parsed
@@ -303,6 +316,43 @@ def suggest():
         return jsonify(error=f'Suggestions failed: {str(e)}'), 500
 
 
+def _post_to_roi_webhook(body):
+    """If ROI_WEBHOOK_URL env var is set, POST a flattened summary of this generation.
+    Silent no-op when unset. All errors swallowed — never block a download."""
+    url = os.environ.get('ROI_WEBHOOK_URL', '').strip()
+    if not url:
+        return
+    try:
+        bc = body.get('breadcrumb') or []
+        outcomes = body.get('outcomes') or []
+        capabilities = body.get('capabilities') or []
+        steps = body.get('steps') or []
+        payload = {
+            'timestamp_utc': __import__('datetime').datetime.utcnow().isoformat() + 'Z',
+            'company': body.get('company', ''),
+            'title': body.get('title', ''),
+            'industry': bc[0] if len(bc) > 0 else '',
+            'function': bc[1] if len(bc) > 1 else '',
+            'use_case': bc[2] if len(bc) > 2 else '',
+            'classification': body.get('classification', ''),
+            'account_team': body.get('account_team', ''),
+            'capabilities': ', '.join(str(c) for c in capabilities),
+            'capability_count': len(capabilities),
+            'step_count': len(steps),
+            'outcomes': '; '.join(
+                f"{(o.get('value','') or '').strip()} {(o.get('label','') or '').strip()}"
+                for o in outcomes if isinstance(o, dict)
+            ),
+            'outcome_count': len(outcomes),
+            'has_maestro': any('maestro' in str(c).lower() for c in capabilities),
+            'has_ixp': any('ixp' == str(c).lower().strip() or 'ixp' in str(c).lower().split()
+                           for c in capabilities),
+        }
+        http_requests.post(url, json=payload, timeout=5)
+    except Exception:
+        pass
+
+
 @app.route('/generate', methods=['POST'])
 def generate():
     """Takes structured story JSON, returns the built .pptx as a download."""
@@ -313,6 +363,8 @@ def generate():
         company = (body.get('company') or 'agentic_win_story').strip()
         safe = ''.join(c if c.isalnum() or c in ('_', '-') else '_' for c in company)
         filename = f'{safe}_agentic_win_story.pptx'
+        # Fire-and-forget tracking
+        _post_to_roi_webhook(body)
         return Response(
             pptx_bytes,
             mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
