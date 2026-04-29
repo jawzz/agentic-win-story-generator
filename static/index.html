@@ -310,15 +310,14 @@
       <button class="mic-btn" type="button" onclick="toggleSpeech('rawText', this)" title="Voice dictation">&#127908;</button>
     </div>
     <details style="margin-top:8px;background:rgba(11,162,179,0.05);border:1px solid rgba(11,162,179,0.25);border-radius:8px;padding:8px 12px">
-      <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--teal)">+ Add supporting docs (optional) &mdash; PDD, MoP, transcripts</summary>
-      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 4px;line-height:1.4">Drop a Process Design Doc, MoP, transcript, or any source PDF / DOCX / TXT. The AI parses each file server-side and uses it as additional context for extraction. Up to 10 MB per file.</p>
+      <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--teal)">+ Add supporting docs (optional) &mdash; PDD, process map, transcripts</summary>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 4px;line-height:1.4">Drop a Process Design Doc, process map, transcript, or any source PDF / DOCX / TXT. The AI parses each file server-side and uses it as additional context for extraction. Up to 10 MB per file.</p>
       <div id="docDropzone" style="margin-top:6px;padding:18px;border:2px dashed rgba(11,162,179,0.35);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s">
         <div style="font-size:13px;color:var(--text-muted);font-weight:500">Drop files here, or click to browse</div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px">.pdf  .docx  .txt  .md</div>
         <input type="file" id="docFileInput" multiple accept=".pdf,.docx,.txt,.md" style="display:none"/>
       </div>
       <div id="docFileList" style="margin-top:8px;display:flex;flex-direction:column;gap:4px"></div>
-      <textarea id="docContext" placeholder="(or paste raw text content here)" style="width:100%;min-height:60px;font-size:12px;font-family:monospace;margin-top:8px"></textarea>
     </details>
     <div class="intake-actions">
       <button class="btn btn-teal" id="extractBtn" type="button">Extract to form</button>
@@ -882,13 +881,10 @@
 
   document.getElementById('extractBtn').onclick = async () => {
     const text = document.getElementById('rawText').value.trim();
-    const docCtx = (document.getElementById('docContext').value || '').trim();
     const status = document.getElementById('extractStatus');
-    if (!text && !docFiles.length && !docCtx) { status.textContent = 'Add notes or supporting docs first.'; status.classList.add('err'); return; }
+    if (!text && !docFiles.length) { status.textContent = 'Add notes or drop supporting docs first.'; status.classList.add('err'); return; }
     let merged = text || '';
-    const docBlocks = [];
-    docFiles.forEach(f => docBlocks.push('### ' + f.name + '\n' + f.text));
-    if (docCtx) docBlocks.push('### Pasted context\n' + docCtx);
+    const docBlocks = docFiles.map(f => '### ' + f.name + '\n' + f.text);
     if (docBlocks.length) {
       merged += (merged ? '\n\n' : '') + '--- SUPPORTING DOCS ---\n\n' + docBlocks.join('\n\n');
     }

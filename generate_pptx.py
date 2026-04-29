@@ -659,20 +659,20 @@ def _build_slide(slide, *, theme, data):
 
     if norm_outcomes:
         nt = len(norm_outcomes)
-        tile_y = oy + 0.40
-        tile_h_out = 0.78
+        tile_y = oy + 0.30   # tightened from 0.40 — closer to header
+        tile_h_out = 0.94    # taller (was 0.78) so 2-line labels fit
         tg = 0.20
         tw2 = (12.33 - tg*(nt-1)) / nt
         for i, (num, label) in enumerate(norm_outcomes):
             tx = 0.5 + i*(tw2 + tg)
             _rect(slide, tx, tile_y, tw2, tile_h_out, T['OUTCOME_FILL'])
-            _text(slide, tx+0.32, tile_y+0.10, tw2-0.5, 0.46,
+            _text(slide, tx+0.32, tile_y+0.08, tw2-0.5, 0.42,
                   num, size=30, bold=True, color=T['WHITE'])
-            _text(slide, tx+0.32, tile_y+0.54, tw2-0.5, 0.22,
+            _text(slide, tx+0.32, tile_y+0.52, tw2-0.5, 0.40,
                   label, size=11, color=T['CREAM'])
         outcomes_bottom = tile_y + tile_h_out
     else:
-        outcomes_bottom = oy + 0.40
+        outcomes_bottom = oy + 0.30
 
     def _format_impact(val):
         if isinstance(val, list):
@@ -692,7 +692,7 @@ def _build_slide(slide, *, theme, data):
     attributable = _format_impact(data.get('attributable'))
     downstream = _format_impact(data.get('downstream'))
 
-    ay = outcomes_bottom + 0.18
+    ay = outcomes_bottom + 0.10  # tightened from 0.18
     ah = 0.78
     acol_w = (12.33 - gap) / 2
 

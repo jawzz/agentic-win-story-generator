@@ -22,6 +22,13 @@ CORS(app)
 
 EXTRACTION_PROMPT = """You are a UiPath customer success writer. A rep has shared raw notes about an agentic automation win. Transform these notes into a polished, structured story for a single-slide agent use case template.
 
+HARD CAPABILITY MAPPING RULES (apply before everything else):
+- IXP IS MANDATORY whenever the source notes mention ANY of: "Document Understanding", "Doc Understanding", "Communications Mining", "intelligent document processing", "OCR", "extracting from PDFs", "parsing emails", "reading invoices", "reading claims", "reading forms", "extracting fields from documents", "intaking documents", "processing communications", "email triage", "transcript parsing", "fax parsing", or any synonym for parsing unstructured documents or communications. When this happens you MUST:
+  1. Add "IXP" to the capabilities list (and NEVER list "Doc Understanding" or "Communications Mining" separately).
+  2. Use role "IXP" (not "BOT") for the corresponding step. The step description should say what's being processed, e.g. "Extract claim fields via IXP", "Triage emails with IXP", "Read invoice line items via IXP".
+- MAESTRO IS MANDATORY whenever the solution involves orchestration, routing, handoffs across agents/bots/humans, workload management, workflow engine, "process orchestrator", or any multi-step coordination. Default to including "Maestro" in capabilities on any solution with 3+ steps spanning multiple roles.
+- A "--- SUPPORTING DOCS ---" section (PDD, process map, transcript) attached to the notes is the source of truth for the steps. Map the solution flow and step roles closely to whatever the process map describes. If the process map has 12 low-level steps, abstract up one level so the slide has 5-7 steps that capture the key transitions, but preserve the order and the role at each transition.
+
 TRANSPARENCY RULES FOR NUMBERS (follow carefully):
 Every numerical metric (in problem_stats or outcomes) MUST be tagged with a "source" indicating where it came from:
 - "stated"     = the exact number (or clear equivalent) appears in the notes. No derivation needed.
@@ -178,6 +185,65 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 
+_IXP_TRIGGERS = (
+    'doc understanding', 'document understanding', 'docunderstanding',
+    'communications mining', 'communication mining', 'comms mining',
+    'intelligent document', 'idp', 'ocr',
+    'pdf', 'invoice', 'claim', ' email', 'emails', 'fax', 'forms',
+    'transcript', 'unstructured', 'extract field', 'parse',
+    'intake document', 'intake form',
+)
+_MAESTRO_TRIGGERS = (
+    'maestro', 'orchestrat', 'route', 'routing', 'handoff', 'hand off',
+    'workflow engine', 'workload', 'process orchestrator', 'coordinat',
+)
+
+
+def _enforce_capability_rules(parsed, source_text):
+    """Force IXP and Maestro into the output if the source text or steps imply them."""
+    if not isinstance(parsed, dict):
+        return parsed
+    src = (source_text or '').lower()
+    caps = list(parsed.get('capabilities') or [])
+    caps_lower = [str(c).lower() for c in caps]
+
+    # Strip any forbidden synonyms from capabilities
+    forbidden = {'doc understanding', 'document understanding', 'docunderstanding',
+                 'communications mining', 'communication mining', 'comms mining'}
+    caps = [c for c in caps if str(c).lower().strip() not in forbidden]
+    caps_lower = [str(c).lower() for c in caps]
+
+    # IXP enforcement
+    ixp_in_text = any(t in src for t in _IXP_TRIGGERS)
+    ixp_in_caps = any('ixp' == c.strip() or 'ixp' in c.split() for c in caps_lower)
+    if ixp_in_text and not ixp_in_caps:
+        caps.append('IXP')
+        caps_lower.append('ixp')
+
+    # Maestro enforcement — required if triggers in text OR steps span 3+ different roles
+    maestro_in_text = any(t in src for t in _MAESTRO_TRIGGERS)
+    maestro_in_caps = any('maestro' in c for c in caps_lower)
+    steps = parsed.get('steps') or []
+    role_set = {str(s.get('role','')).upper() for s in steps if isinstance(s, dict)}
+    multi_role = len(role_set & {'AGENT','BOT','HUMAN','IXP'}) >= 2 and len(steps) >= 3
+    if (maestro_in_text or multi_role) and not maestro_in_caps:
+        caps.append('Maestro')
+
+    parsed['capabilities'] = caps
+
+    # Step-level: rewrite BOT steps that look like document/communication processing as IXP
+    doc_step_words = ('extract', 'parse', 'read', 'classify', 'intake', 'ingest', 'triage')
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        role = str(s.get('role','')).upper()
+        desc = str(s.get('description','')).lower()
+        if role == 'BOT' and any(t in desc for t in ('document', 'doc', 'pdf', 'email', 'invoice', 'claim', 'form', 'fax', 'transcript', 'communication', 'ixp')) and any(w in desc for w in doc_step_words):
+            s['role'] = 'IXP'
+
+    return parsed
+
+
 @app.route('/extract', methods=['POST'])
 def extract():
     """Takes raw text notes, returns structured JSON for the agentic template."""
@@ -187,6 +253,7 @@ def extract():
         if not text:
             return jsonify(error='No input text provided.'), 400
         parsed = _call_claude(EXTRACTION_PROMPT, f'Rep notes:\n\n{text}')
+        parsed = _enforce_capability_rules(parsed, text)
         return jsonify(parsed)
     except json.JSONDecodeError as e:
         return jsonify(error=f'Could not parse AI response as JSON: {e}'), 500
