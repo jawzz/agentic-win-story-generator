@@ -31,7 +31,7 @@ DARK = {
     'BG':C('14222A'),'CARD_BG':C('1E3038'),'CARD_BG_2':C('253A45'),'CARD_BG_3':C('2E4552'),
     'DIVIDER':C('2A3F4A'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('7A2E18'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('0E5C68'),'GOLD':C('DA9100'),
-    'GREEN':C('2EBF4F'),'RED':C('E53E3E'),
+    'GREEN':C('5BBE82'),'RED':C('E53E3E'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('FFFFFF'),
     'TEXT_MUTED':C('8AABB5'),'TEXT_DIM':C('5C7480'),
     'OUTCOME_FILL':C('FA4616'),
@@ -40,7 +40,7 @@ LIGHT = {
     'BG':C('F7F8FA'),'CARD_BG':C('FFFFFF'),'CARD_BG_2':C('EDEFF2'),'CARD_BG_3':C('FFFFFF'),
     'DIVIDER':C('D8DDE3'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('0BA2B3'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('1E6482'),'GOLD':C('DA9100'),
-    'GREEN':C('1E9D3F'),'RED':C('D43A2C'),
+    'GREEN':C('5BBE82'),'RED':C('D43A2C'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('1A2330'),
     'TEXT_MUTED':C('5A6B78'),'TEXT_DIM':C('8A98A5'),
     'OUTCOME_FILL':C('FA4616'),
@@ -249,10 +249,7 @@ def _draw_tags(slide, T, data, divider_y):
     # Internal flag
     if data.get('internal') or data.get('classification') == 'internal':
         tags.append(('INTERNAL', T['RED']))
-    # Maestro detection — explicit flag OR "Maestro" present in capabilities
-    caps = [str(c).lower() for c in (data.get('capabilities') or [])]
-    if data.get('maestro') or any('maestro' in c for c in caps):
-        tags.append(('MAESTRO', T['TEAL']))
+    # Maestro pill is rendered on the solution card now, not in the top-right row.
     # Easy process — explicit flag OR auto-detect (<=5 steps, no AGENT, no IXP)
     easy_flag = data.get('easy_process')
     if easy_flag is None:
@@ -489,6 +486,23 @@ def _build_slide(slide, *, theme, data):
     _text(slide, sx0+0.35, row_y+0.18, col_w-0.7, 0.38,
           'The solution', size=18, bold=True, color=T['WHITE'])
 
+    # MAESTRO pill in top-right corner of the solution card, if Maestro is in play
+    _caps_for_maestro = [str(c).lower() for c in (data.get('capabilities') or [])]
+    if data.get('maestro') or any('maestro' in c for c in _caps_for_maestro):
+        m_label = 'MAESTRO'
+        m_w = 0.18*2 + len(m_label)*0.075
+        m_h = 0.26
+        m_x = sx0 + col_w - m_w - 0.30
+        m_y = row_y + 0.22
+        m_pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
+                                         Inches(m_x), Inches(m_y), Inches(m_w), Inches(m_h))
+        m_pill.adjustments[0] = 0.5
+        m_pill.fill.solid(); m_pill.fill.fore_color.rgb = T['WHITE']
+        m_pill.line.fill.background()
+        m_pill.shadow.inherit = False
+        _text(slide, m_x, m_y, m_w, m_h, m_label, size=9, bold=True,
+              color=T['TEAL_CARD'], align='center', anchor='middle', tracking=1.2)
+
     pills = data.get('capabilities') or []
     max_pill_area_w = col_w - 0.7
     rows = [[]]; row_w = 0.0
@@ -588,16 +602,27 @@ def _build_slide(slide, *, theme, data):
             label = f"{i+1:02d}  {r}" if show_num else r
             _text(slide, x+0.14, step_y+0.12, tile_w-0.24, 0.22,
                   label, size=9, bold=True, color=role_c[r], tracking=1.5)
-            # Role icon in top-right of tile
+            # Role icon in top-right of tile (icons dropped ~5px from prior position)
             icon_size = 0.22
             icon_x = x + tile_w - icon_size - 0.02
-            icon_y = step_y + 0.02
+            icon_y = step_y + 0.07  # was 0.02 — pushed down 5px to better center
             if r == 'IXP':
-                # Built-in document shape (FLOWCHART_DOCUMENT) filled with role color
+                # Green circle background with a small white document inside
+                circle = slide.shapes.add_shape(MSO_SHAPE.OVAL,
+                                                Inches(icon_x), Inches(icon_y),
+                                                Inches(icon_size), Inches(icon_size))
+                circle.fill.solid(); circle.fill.fore_color.rgb = role_c[r]
+                circle.line.fill.background()
+                circle.shadow.inherit = False
+                # White document shape, smaller, centered inside the circle
+                doc_w = icon_size * 0.55
+                doc_h = icon_size * 0.62
+                doc_x = icon_x + (icon_size - doc_w) / 2
+                doc_y = icon_y + (icon_size - doc_h) / 2
                 doc = slide.shapes.add_shape(MSO_SHAPE.FLOWCHART_DOCUMENT,
-                                              Inches(icon_x), Inches(icon_y),
-                                              Inches(icon_size), Inches(icon_size * 0.85))
-                doc.fill.solid(); doc.fill.fore_color.rgb = role_c[r]
+                                              Inches(doc_x), Inches(doc_y),
+                                              Inches(doc_w), Inches(doc_h))
+                doc.fill.solid(); doc.fill.fore_color.rgb = T['WHITE']
                 doc.line.fill.background()
                 doc.shadow.inherit = False
             else:

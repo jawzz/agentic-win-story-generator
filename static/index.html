@@ -311,8 +311,14 @@
     </div>
     <details style="margin-top:8px;background:rgba(11,162,179,0.05);border:1px solid rgba(11,162,179,0.25);border-radius:8px;padding:8px 12px">
       <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--teal)">+ Add supporting docs (optional) &mdash; PDD, MoP, transcripts</summary>
-      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 4px;line-height:1.4">Paste content from a Process Design Doc, MoP, transcript, or any other source material. AI will use it as additional context for extraction.</p>
-      <textarea id="docContext" placeholder="Paste PDD content, transcript, or any supporting docs..." style="width:100%;min-height:80px;font-size:12px;font-family:monospace"></textarea>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 4px;line-height:1.4">Drop a Process Design Doc, MoP, transcript, or any source PDF / DOCX / TXT. The AI parses each file server-side and uses it as additional context for extraction. Up to 10 MB per file.</p>
+      <div id="docDropzone" style="margin-top:6px;padding:18px;border:2px dashed rgba(11,162,179,0.35);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s">
+        <div style="font-size:13px;color:var(--text-muted);font-weight:500">Drop files here, or click to browse</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">.pdf  .docx  .txt  .md</div>
+        <input type="file" id="docFileInput" multiple accept=".pdf,.docx,.txt,.md" style="display:none"/>
+      </div>
+      <div id="docFileList" style="margin-top:8px;display:flex;flex-direction:column;gap:4px"></div>
+      <textarea id="docContext" placeholder="(or paste raw text content here)" style="width:100%;min-height:60px;font-size:12px;font-family:monospace;margin-top:8px"></textarea>
     </details>
     <div class="intake-actions">
       <button class="btn btn-teal" id="extractBtn" type="button">Extract to form</button>
@@ -829,14 +835,63 @@
   }
 
   // ---------- Button handlers ----------
+  // ---------- Doc drop zone ----------
+  const docFiles = []; // {name, text}
+  const dz = document.getElementById('docDropzone');
+  const fileInput = document.getElementById('docFileInput');
+  const fileList = document.getElementById('docFileList');
+
+  function renderDocFileList() {
+    fileList.innerHTML = docFiles.map((f, i) =>
+      '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(11,162,179,0.08);border:1px solid rgba(11,162,179,0.25);border-radius:6px;font-size:12px">' +
+        '<span style="color:var(--teal)">&#128196;</span>' +
+        '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(f.name) + '</span>' +
+        '<span style="color:var(--text-dim);font-size:11px">' + (f.text.length > 100 ? Math.round(f.text.length/1000) + 'k chars' : f.text.length + ' chars') + '</span>' +
+        '<button type="button" onclick="removeDocFile(' + i + ')" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0 4px">x</button>' +
+      '</div>').join('');
+  }
+  window.removeDocFile = (i) => { docFiles.splice(i, 1); renderDocFileList(); };
+
+  async function uploadDocs(files) {
+    if (!files || !files.length) return;
+    const fd = new FormData();
+    for (const f of files) fd.append('files', f);
+    dz.style.opacity = '0.6';
+    try {
+      const resp = await fetch('/parse-docs', { method: 'POST', body: fd });
+      if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || 'Parse failed'); }
+      const out = await resp.json();
+      (out.files || []).forEach(f => docFiles.push(f));
+      renderDocFileList();
+    } catch (e) {
+      alert('Doc upload failed: ' + e.message);
+    } finally {
+      dz.style.opacity = '1';
+    }
+  }
+
+  dz.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => uploadDocs(e.target.files));
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.style.background = 'rgba(11,162,179,0.12)'; dz.style.borderColor = 'var(--teal)';
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.style.background = ''; dz.style.borderColor = 'rgba(11,162,179,0.35)';
+  }));
+  dz.addEventListener('drop', e => uploadDocs(e.dataTransfer.files));
+
   document.getElementById('extractBtn').onclick = async () => {
     const text = document.getElementById('rawText').value.trim();
     const docCtx = (document.getElementById('docContext').value || '').trim();
     const status = document.getElementById('extractStatus');
-    if (!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
-    const merged = docCtx
-      ? text + '\n\n--- SUPPORTING DOCS ---\n' + docCtx
-      : text;
+    if (!text && !docFiles.length && !docCtx) { status.textContent = 'Add notes or supporting docs first.'; status.classList.add('err'); return; }
+    let merged = text || '';
+    const docBlocks = [];
+    docFiles.forEach(f => docBlocks.push('### ' + f.name + '\n' + f.text));
+    if (docCtx) docBlocks.push('### Pasted context\n' + docCtx);
+    if (docBlocks.length) {
+      merged += (merged ? '\n\n' : '') + '--- SUPPORTING DOCS ---\n\n' + docBlocks.join('\n\n');
+    }
     status.textContent = 'Extracting...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract', {

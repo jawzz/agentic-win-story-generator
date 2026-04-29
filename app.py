@@ -50,7 +50,7 @@ Rules (follow strictly):
 - CAPABILITIES: 3-6 UiPath product names/capabilities used. Canonical names (use these exactly):
     - "Agents" - AI reasoning, autonomous decisioning
     - "Maestro" - the orchestration layer. ALWAYS include Maestro when the solution involves coordinating agents, bots, or humans across a process, a workflow engine, process/workload orchestration, routing, handoffs, SLA management, or anything the notes call "workload registration", "workflow registration", "orchestration", or "process controller". Default to including Maestro on any multi-step agentic solution.
-    - "IXP" - intelligent document processing / data extraction from docs, emails, forms, invoices, claims, PDFs, faxes, images. NEVER use "Doc Understanding" or "Document Understanding" - always say "IXP".
+    - "IXP" - the umbrella term for intelligent document + communications processing. IXP includes Document Understanding AND Communications Mining. ALWAYS use "IXP" — never list "Doc Understanding", "Document Understanding", or "Communications Mining" as separate capabilities. Whenever the notes mention parsing PDFs, emails, forms, invoices, claims, faxes, images, chat transcripts, or call transcripts, that's IXP.
     - "Unattended Robots" - deterministic RPA, system-to-system automation
     - "Attended Robots" - desktop assistant bots with humans
     - "Action Center" - human-in-the-loop approvals and reviews
@@ -62,7 +62,7 @@ Rules (follow strictly):
   - "AGENT" = AI reasoning, classification, routing, decisions
   - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
   - "HUMAN" = human in the loop (review, approve, sign-off)
-  - "IXP"   = documents and communications processing (extracting data from PDFs, emails, forms, invoices, claims, faxes, images). Use IXP for ANY step where unstructured documents or communications are parsed. Do NOT use BOT for these.
+  - "IXP"   = documents and communications processing — the umbrella for Document Understanding AND Communications Mining. Use IXP for any step that parses PDFs, emails, forms, invoices, claims, faxes, images, chat transcripts, or call transcripts. Do NOT use BOT for these.
   Step description: 3-6 words, imperative. When a step orchestrates or routes work across agents/bots/humans, say Maestro. DO NOT invent steps, agents, bots, humans, or IXP steps that the notes don't mention. If the notes only describe 3 steps, return 3 steps.
 - OUTCOMES: 1-5 outcome tiles. Each item: {value, label, source, note}. See transparency rules above. Value examples: "$558K", "90%", "9 min", or qualitative "Reduced" / "Faster" / "Fewer" / "Yes". Label examples: "revenue released", "cycle time", "of workflow automated". Empty array if the notes truly have no outcomes.
 - ATTRIBUTABLE IMPACT (optional): list of directional metrics directly moved. Each item: {"direction": "up" | "down", "text": "metric name"}. 3-5 items. Empty list if none clearly inferable from the notes. Use "down" for reductions (cycle time, touches, backlogs) and "up" for improvements (yield, satisfaction, throughput). Only list metrics that the notes actually discuss or clearly imply — do NOT invent metrics the rep didn't mention.
@@ -254,6 +254,62 @@ def generate():
     except Exception as e:
         traceback.print_exc()
         return jsonify(error=f'Generate failed: {str(e)}'), 500
+
+
+def _extract_text_from_upload(filename, blob):
+    """Best-effort text extraction from .pdf, .docx, .txt, .md."""
+    name = (filename or '').lower()
+    if name.endswith('.pdf'):
+        try:
+            import io as _io
+            from pypdf import PdfReader
+            reader = PdfReader(_io.BytesIO(blob))
+            return '\n\n'.join((p.extract_text() or '') for p in reader.pages).strip()
+        except Exception as e:
+            return f"[PDF parse error: {e}]"
+    if name.endswith('.docx'):
+        try:
+            import io as _io
+            import docx
+            d = docx.Document(_io.BytesIO(blob))
+            parts = [p.text for p in d.paragraphs if p.text.strip()]
+            for tbl in d.tables:
+                for row in tbl.rows:
+                    parts.append(' | '.join(c.text for c in row.cells))
+            return '\n'.join(parts).strip()
+        except Exception as e:
+            return f"[DOCX parse error: {e}]"
+    if name.endswith('.txt') or name.endswith('.md'):
+        try:
+            return blob.decode('utf-8', errors='replace').strip()
+        except Exception as e:
+            return f"[Text decode error: {e}]"
+    return f"[Unsupported file type: {filename}]"
+
+
+@app.route('/parse-docs', methods=['POST'])
+def parse_docs():
+    """Accept multiple uploaded files, return concatenated extracted text per file."""
+    try:
+        files = request.files.getlist('files')
+        if not files:
+            return jsonify(error='No files uploaded.'), 400
+        results = []
+        MAX_BYTES = 10 * 1024 * 1024  # 10 MB per file
+        for f in files:
+            blob = f.read(MAX_BYTES + 1)
+            if len(blob) > MAX_BYTES:
+                results.append({'name': f.filename, 'text': f'[File too large: {f.filename}, max 10MB]'})
+                continue
+            text = _extract_text_from_upload(f.filename, blob)
+            # Cap per-file text to keep prompt size reasonable
+            if len(text) > 20000:
+                text = text[:20000] + '\n[...truncated...]'
+            results.append({'name': f.filename, 'text': text})
+        return jsonify(files=results)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify(error=f'Parse failed: {str(e)}'), 500
 
 
 @app.route('/health')
