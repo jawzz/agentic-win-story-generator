@@ -309,6 +309,11 @@
       <textarea class="intake-textarea" id="rawText" placeholder="e.g. Anthem - medical claim adjudication. High-volume inbound claims require manual review across clinical codes, member eligibility, and provider contracts. $3.4M annual cost, 12 days avg processing, high backlog. UiPath Agents classify and triage claims by clinical codes and risk; Unattended Robots verify eligibility and contract terms; humans adjudicate exceptions. Capabilities: Agents, Unattended Robots, Action Center, Doc Understanding. Steps: bot ingests docs, agent classifies, bot verifies eligibility, bot validates contracts, agent routes routine claims, human adjudicates exceptions, bot issues reimbursement. Outcomes: $3.4M annual savings, 10 days cycle reduction, 2 days new avg processing. Impact: reduced claims queue days, reduced manual review touches, improved first-pass approval, improved provider satisfaction. Downstream: higher staff retention, better member and provider NPS, reduced compliance risk."></textarea>
       <button class="mic-btn" type="button" onclick="toggleSpeech('rawText', this)" title="Voice dictation">&#127908;</button>
     </div>
+    <details style="margin-top:8px;background:rgba(11,162,179,0.05);border:1px solid rgba(11,162,179,0.25);border-radius:8px;padding:8px 12px">
+      <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--teal)">+ Add supporting docs (optional) &mdash; PDD, MoP, transcripts</summary>
+      <p style="font-size:11px;color:var(--text-dim);margin:6px 0 4px;line-height:1.4">Paste content from a Process Design Doc, MoP, transcript, or any other source material. AI will use it as additional context for extraction.</p>
+      <textarea id="docContext" placeholder="Paste PDD content, transcript, or any supporting docs..." style="width:100%;min-height:80px;font-size:12px;font-family:monospace"></textarea>
+    </details>
     <div class="intake-actions">
       <button class="btn btn-teal" id="extractBtn" type="button">Extract to form</button>
       <span class="intake-status" id="extractStatus"></span>
@@ -354,6 +359,27 @@
         <div class="field">
           <label>Subtitle <span class="hint">one-line framing</span></label>
           <input id="subtitle" type="text" placeholder="e.g. Agents reason over denials; bots execute; humans approve the edge cases." maxlength="140"/>
+        </div>
+      </div>
+      <div class="frow one" style="margin-top:8px;padding:12px;background:rgba(229,62,62,0.06);border:1px solid rgba(229,62,62,0.25);border-radius:8px">
+        <div class="field">
+          <label style="color:var(--red,#E53E3E)">Sharing classification <span class="req-star">*</span> <span class="hint">required before generate</span></label>
+          <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px">
+            <label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;font-weight:500;margin:0">
+              <input type="radio" name="classification" value="external" id="classExternal" style="margin:0;width:auto"/>
+              External-shareable (no tag)
+            </label>
+            <label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;font-weight:500;margin:0">
+              <input type="radio" name="classification" value="internal" id="classInternal" style="margin:0;width:auto"/>
+              Internal only (red tag)
+            </label>
+          </div>
+          <div id="anonymizeRow" style="display:none;margin-top:10px;padding-left:8px;border-left:2px solid var(--red,#E53E3E)">
+            <label style="display:flex;gap:6px;align-items:flex-start;cursor:pointer;font-size:13px;margin:0">
+              <input type="checkbox" id="anonymize" style="margin:3px 0 0 0;width:auto;flex-shrink:0"/>
+              <span>Anonymize customer (strip logo + replace name with &ldquo;[Industry] Customer&rdquo;)</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -563,7 +589,14 @@
       derivationNote(source, note) +
     '</div>';
   }
-  const roleIconMap = { AGENT: '/icons/bpmn_agent.png', BOT: '/icons/bpmn_robot.png', HUMAN: '/icons/bpmn_person.png' };
+  const roleIconMap = {
+    AGENT: '/icons/bpmn_agent.png',
+    BOT:   '/icons/bpmn_robot.png',
+    HUMAN: '/icons/bpmn_person.png',
+    IXP:   'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231E9D3F" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
+    )
+  };
   function buildRow_steps(role, description) {
     role = role || 'AGENT';
     const iconSrc = roleIconMap[role];
@@ -573,6 +606,7 @@
         '<option value="AGENT"' + (role==='AGENT'?' selected':'') + '>AGENT</option>' +
         '<option value="BOT"'   + (role==='BOT'?' selected':'')   + '>BOT</option>' +
         '<option value="HUMAN"' + (role==='HUMAN'?' selected':'') + '>HUMAN</option>' +
+        '<option value="IXP"'   + (role==='IXP'?' selected':'')   + '>IXP</option>' +
       '</select>' +
       '<input type="text" placeholder="Step description" value="' + escapeAttr(description) + '" data-field="description" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +
@@ -683,7 +717,13 @@
   document.addEventListener('change', updateDots);
 
   // ---------- Data collection ----------
+  function getClassification() {
+    const r = document.querySelector('input[name="classification"]:checked');
+    return r ? r.value : '';
+  }
+
   function collectData() {
+    const cls = getClassification();
     return {
       breadcrumb: [
         document.getElementById('bc0').value.trim() || 'Industry',
@@ -693,6 +733,9 @@
       title: document.getElementById('title').value.trim(),
       subtitle: document.getElementById('subtitle').value.trim(),
       company: document.getElementById('company').value.trim(),
+      classification: cls,
+      internal: cls === 'internal',
+      anonymize: cls === 'internal' && document.getElementById('anonymize').checked,
       problem_desc: document.getElementById('problemDesc').value.trim(),
       problem_stats: collectListItems('problemStats', ['value','label']),
       solution_desc: document.getElementById('solutionDesc').value.trim(),
@@ -704,6 +747,14 @@
       theme: SLIDE_THEME,
     };
   }
+
+  // Toggle anonymize row when Internal selected
+  document.querySelectorAll('input[name="classification"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const row = document.getElementById('anonymizeRow');
+      row.style.display = (r.value === 'internal' && r.checked) ? 'block' : 'none';
+    });
+  });
 
   function collectListItems(listName, fields) {
     const items = [];
@@ -780,14 +831,18 @@
   // ---------- Button handlers ----------
   document.getElementById('extractBtn').onclick = async () => {
     const text = document.getElementById('rawText').value.trim();
+    const docCtx = (document.getElementById('docContext').value || '').trim();
     const status = document.getElementById('extractStatus');
     if (!text) { status.textContent = 'Paste some notes first.'; status.classList.add('err'); return; }
+    const merged = docCtx
+      ? text + '\n\n--- SUPPORTING DOCS ---\n' + docCtx
+      : text;
     status.textContent = 'Extracting...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: merged }),
       });
       if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Extract failed'); }
       const data = await resp.json();
@@ -901,6 +956,7 @@
     const data = collectData();
     if (!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
     if (!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
+    if (!data.classification) { status.textContent = 'Pick Internal or External-shareable in the Customer card.'; status.classList.add('err'); return; }
     status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
     try {

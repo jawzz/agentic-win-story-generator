@@ -62,7 +62,8 @@ Rules (follow strictly):
   - "AGENT" = AI reasoning, classification, routing, decisions
   - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
   - "HUMAN" = human in the loop (review, approve, sign-off)
-  Step description: 3-6 words, imperative. When a step extracts data from documents/emails/forms, say IXP (never "Doc Understanding"). When a step orchestrates or routes work across agents/bots/humans, say Maestro. DO NOT invent steps, agents, bots, or humans that the notes don't mention. If the notes only describe 3 steps, return 3 steps.
+  - "IXP"   = documents and communications processing (extracting data from PDFs, emails, forms, invoices, claims, faxes, images). Use IXP for ANY step where unstructured documents or communications are parsed. Do NOT use BOT for these.
+  Step description: 3-6 words, imperative. When a step orchestrates or routes work across agents/bots/humans, say Maestro. DO NOT invent steps, agents, bots, humans, or IXP steps that the notes don't mention. If the notes only describe 3 steps, return 3 steps.
 - OUTCOMES: 1-5 outcome tiles. Each item: {value, label, source, note}. See transparency rules above. Value examples: "$558K", "90%", "9 min", or qualitative "Reduced" / "Faster" / "Fewer" / "Yes". Label examples: "revenue released", "cycle time", "of workflow automated". Empty array if the notes truly have no outcomes.
 - ATTRIBUTABLE IMPACT (optional): list of directional metrics directly moved. Each item: {"direction": "up" | "down", "text": "metric name"}. 3-5 items. Empty list if none clearly inferable from the notes. Use "down" for reductions (cycle time, touches, backlogs) and "up" for improvements (yield, satisfaction, throughput). Only list metrics that the notes actually discuss or clearly imply — do NOT invent metrics the rep didn't mention.
 - DOWNSTREAM IMPACT (optional): list of second-order effects (staff retention, NPS, compliance posture). Same format as attributable. Empty list if none inferable.
@@ -120,8 +121,9 @@ For each step, classify the actor role:
 - "AGENT" = AI reasoning, classification, routing, decisions
 - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
 - "HUMAN" = human in the loop (review, approve, sign-off)
+- "IXP"   = documents and communications processing (extracting data from PDFs, emails, forms, invoices, claims, faxes, images). Use IXP — not BOT — for any step that parses unstructured documents.
 
-Step description: 3-6 words, imperative (e.g. "Pull & classify inbound denials", "Extract fields via IXP", "Route via Maestro"). When a step describes extracting data from documents/emails/forms/invoices, refer to it as IXP (never "Doc Understanding"). When a step describes orchestrating, routing, or handing off work across agents/bots/humans, refer to it as Maestro.
+Step description: 3-6 words, imperative (e.g. "Pull & classify inbound denials", "Extract fields via IXP", "Route via Maestro"). Use Maestro for orchestration, routing, or handoff steps.
 
 Return ONLY valid JSON:
 {"steps": [{"role": "AGENT|BOT|HUMAN", "description": "short step name"}]}"""

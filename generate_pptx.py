@@ -31,6 +31,7 @@ DARK = {
     'BG':C('14222A'),'CARD_BG':C('1E3038'),'CARD_BG_2':C('253A45'),'CARD_BG_3':C('2E4552'),
     'DIVIDER':C('2A3F4A'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('7A2E18'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('0E5C68'),'GOLD':C('DA9100'),
+    'GREEN':C('2EBF4F'),'RED':C('E53E3E'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('FFFFFF'),
     'TEXT_MUTED':C('8AABB5'),'TEXT_DIM':C('5C7480'),
     'OUTCOME_FILL':C('FA4616'),
@@ -39,6 +40,7 @@ LIGHT = {
     'BG':C('F7F8FA'),'CARD_BG':C('FFFFFF'),'CARD_BG_2':C('EDEFF2'),'CARD_BG_3':C('FFFFFF'),
     'DIVIDER':C('D8DDE3'),'ORANGE':C('FA4616'),'ORANGE_CARD':C('0BA2B3'),
     'TEAL':C('0BA2B3'),'TEAL_CARD':C('1E6482'),'GOLD':C('DA9100'),
+    'GREEN':C('1E9D3F'),'RED':C('D43A2C'),
     'WHITE':C('FFFFFF'),'CREAM':C('FFE8DC'),'TEXT':C('1A2330'),
     'TEXT_MUTED':C('5A6B78'),'TEXT_DIM':C('8A98A5'),
     'OUTCOME_FILL':C('FA4616'),
@@ -241,6 +243,53 @@ def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
     v.line.fill.background(); v.shadow.inherit = False
 
 
+def _draw_tags(slide, T, data, divider_y):
+    """Render small pill tags (INTERNAL, MAESTRO, EASY PROCESS) just above the divider on the right."""
+    tags = []
+    # Internal flag
+    if data.get('internal') or data.get('classification') == 'internal':
+        tags.append(('INTERNAL', T['RED']))
+    # Maestro detection — explicit flag OR "Maestro" present in capabilities
+    caps = [str(c).lower() for c in (data.get('capabilities') or [])]
+    if data.get('maestro') or any('maestro' in c for c in caps):
+        tags.append(('MAESTRO', T['TEAL']))
+    # Easy process — explicit flag OR auto-detect (<=5 steps, no AGENT, no IXP)
+    easy_flag = data.get('easy_process')
+    if easy_flag is None:
+        steps = data.get('steps') or []
+        roles = []
+        for s in steps:
+            if isinstance(s, dict):
+                roles.append(str(s.get('role','')).upper())
+        easy_flag = (0 < len(steps) <= 5) and not any(r in ('AGENT', 'IXP') for r in roles)
+    if easy_flag:
+        tags.append(('EASY PROCESS', T['GREEN']))
+
+    if not tags:
+        return
+    # Render as a horizontal row, right-aligned, just above the divider
+    pill_h = 0.28
+    pill_pad_x = 0.18
+    gap = 0.10
+    y = divider_y - pill_h - 0.10
+    # Compute total width
+    char_w = 0.075
+    widths = [pill_pad_x*2 + len(label)*char_w for (label, _) in tags]
+    total = sum(widths) + gap * (len(tags) - 1)
+    right_edge = 13.333 - 0.5
+    x = right_edge - total
+    for (label, color), w in zip(tags, widths):
+        s = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
+                                    Inches(x), Inches(y), Inches(w), Inches(pill_h))
+        s.adjustments[0] = 0.5
+        s.fill.solid(); s.fill.fore_color.rgb = color
+        s.line.fill.background()
+        s.shadow.inherit = False
+        _text(slide, x, y, w, pill_h, label, size=9, bold=True,
+              color=T['WHITE'], align='center', anchor='middle', tracking=1.0)
+        x += w + gap
+
+
 def _draw_partnership_lockup(slide, uipath_logo_path, customer_logo_bytes, company_name,
                               *, text_color, muted, plus_color):
     """UiPath logo is ALWAYS fixed in the top-right corner (same spot every time).
@@ -369,11 +418,22 @@ def _build_slide(slide, *, theme, data):
         r2.font.color.rgb = T['TEXT_MUTED']
 
     # --- UiPath + Customer lockup in top-right ---
+    anonymize = bool(data.get('anonymize'))
     company_name = data.get('company', '')
-    logo_bytes = _fetch_customer_logo(company_name) if company_name else None
-    _draw_partnership_lockup(slide, logo_path, logo_bytes, company_name,
+    if anonymize:
+        # Replace customer name with industry-generic label, no logo
+        ind = bc0 if bc0 and bc0 != 'Industry' else 'Anonymous'
+        display_company = f"{ind} Customer"
+        logo_bytes = None
+    else:
+        display_company = company_name
+        logo_bytes = _fetch_customer_logo(company_name) if company_name else None
+    _draw_partnership_lockup(slide, logo_path, logo_bytes, display_company,
                              text_color=T['TEXT'], muted=T['TEXT_MUTED'],
                              plus_color=T['TEXT_MUTED'])
+
+    # --- Tag pills (Internal / Maestro / Easy Process) ---
+    _draw_tags(slide, T, data, divider_y)
 
     _rect(slide, 0.5, divider_y, 12.33, 0.015, T['DIVIDER'])
 
@@ -396,8 +456,8 @@ def _build_slide(slide, *, theme, data):
         elif isinstance(st, (list, tuple)) and len(st) >= 2:
             norm_stats.append((str(st[0]), str(st[1])))
 
-    # Description starts closer to header (0.62 vs 0.72 before)
-    desc_top_prob = row_y + 0.62
+    # Description tightened up further (was 0.62, now 0.50 — closer to header)
+    desc_top_prob = row_y + 0.50
     if norm_stats:
         # Description gets less room; stats below
         desc_h_prob = 0.48 if len(problem_desc) < 180 else 0.72
@@ -413,7 +473,9 @@ def _build_slide(slide, *, theme, data):
         sw = (sa_w - 0.15*(sc-1)) / sc
         for i, (n, l) in enumerate(norm_stats[:sc]):
             sx = px + 0.35 + i*(sw+0.15)
-            _text(slide, sx, stats_y, sw, 0.34, n, size=22, bold=True, color=T['WHITE'])
+            # Drop to 18 when value > 6 chars (e.g. "$1.5M+", "21 days") so it fits
+            stat_size = 18 if len(n) > 6 else 22
+            _text(slide, sx, stats_y, sw, 0.34, n, size=stat_size, bold=True, color=T['WHITE'])
             _text(slide, sx, stats_y+0.36, sw, 0.26, l, size=9, color=T['CREAM'])
     else:
         # No stats — use full lower space for description
@@ -442,7 +504,7 @@ def _build_slide(slide, *, theme, data):
     pill_block_bottom = row_y + row_h - bottom_margin
     pill_block_top = pill_block_bottom - pill_block_h
 
-    desc_top_sol = row_y + 0.62
+    desc_top_sol = row_y + 0.50  # tightened from 0.62
     solution_desc = (data.get('solution_desc') or '').strip()
     if pills:
         desc_h_sol = max(0.30, pill_block_top - 0.12 - desc_top_sol)
@@ -489,8 +551,8 @@ def _build_slide(slide, *, theme, data):
         elif isinstance(st, (list, tuple)) and len(st) >= 2:
             norm_steps.append((str(st[0]).upper(), str(st[1])))
 
-    # SWAPPED COLORS: BOT=orange, AGENT=teal, HUMAN=gold
-    role_c = {'BOT': T['ORANGE'], 'AGENT': T['TEAL'], 'HUMAN': T['GOLD']}
+    # SWAPPED COLORS: BOT=orange, AGENT=teal, HUMAN=gold, IXP=green
+    role_c = {'BOT': T['ORANGE'], 'AGENT': T['TEAL'], 'HUMAN': T['GOLD'], 'IXP': T['GREEN']}
     n_steps = len(norm_steps)
 
     if n_steps > 0:
@@ -526,15 +588,24 @@ def _build_slide(slide, *, theme, data):
             label = f"{i+1:02d}  {r}" if show_num else r
             _text(slide, x+0.14, step_y+0.12, tile_w-0.24, 0.22,
                   label, size=9, bold=True, color=role_c[r], tracking=1.5)
-            # Role icon in top-right of tile (BPMN icon set from old project)
-            icon_map = {'BOT': BPMN_ROBOT, 'AGENT': BPMN_AGENT, 'HUMAN': BPMN_PERSON}
-            icon_path = icon_map.get(r)
-            if icon_path and icon_path.exists():
-                icon_size = 0.22
-                icon_x = x + tile_w - icon_size - 0.06  # nudged ~4px right
-                icon_y = step_y + 0.06                  # nudged ~4px up
-                slide.shapes.add_picture(str(icon_path), Inches(icon_x), Inches(icon_y),
-                                          width=Inches(icon_size), height=Inches(icon_size))
+            # Role icon in top-right of tile
+            icon_size = 0.22
+            icon_x = x + tile_w - icon_size - 0.02
+            icon_y = step_y + 0.02
+            if r == 'IXP':
+                # Built-in document shape (FLOWCHART_DOCUMENT) filled with role color
+                doc = slide.shapes.add_shape(MSO_SHAPE.FLOWCHART_DOCUMENT,
+                                              Inches(icon_x), Inches(icon_y),
+                                              Inches(icon_size), Inches(icon_size * 0.85))
+                doc.fill.solid(); doc.fill.fore_color.rgb = role_c[r]
+                doc.line.fill.background()
+                doc.shadow.inherit = False
+            else:
+                icon_map = {'BOT': BPMN_ROBOT, 'AGENT': BPMN_AGENT, 'HUMAN': BPMN_PERSON}
+                icon_path = icon_map.get(r)
+                if icon_path and icon_path.exists():
+                    slide.shapes.add_picture(str(icon_path), Inches(icon_x), Inches(icon_y),
+                                              width=Inches(icon_size), height=Inches(icon_size))
             ds = desc_size_for_step(desc, tile_w)
             _text(slide, x+0.14, step_y+0.34, tile_w-0.24, step_h-0.38,
                   desc, size=ds, bold=True, color=T['TEXT'])
