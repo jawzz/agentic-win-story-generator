@@ -23,10 +23,19 @@ CORS(app)
 EXTRACTION_PROMPT = """You are a UiPath customer success writer. A rep has shared raw notes about an agentic automation win. Transform these notes into a polished, structured story for a single-slide agent use case template.
 
 HARD CAPABILITY MAPPING RULES (apply before everything else):
-- IXP IS MANDATORY whenever the source notes mention ANY of: "Document Understanding", "Doc Understanding", "Communications Mining", "intelligent document processing", "OCR", "extracting from PDFs", "parsing emails", "reading invoices", "reading claims", "reading forms", "extracting fields from documents", "intaking documents", "processing communications", "email triage", "transcript parsing", "fax parsing", or any synonym for parsing unstructured documents or communications. When this happens you MUST:
+- IXP IS MANDATORY whenever the source notes describe ANY step that pulls, reads, extracts, classifies, parses, ingests, or analyzes information from a document, communication, or form. This is broader than it sounds — assume IXP applies if ANY of the following is true:
+  * The notes mention "Document Understanding", "Doc Understanding", "Communications Mining", "intelligent document processing", "IDP", or "OCR".
+  * The step touches a document type: PDF, invoice, claim, contract, statement, remittance, RFQ/RFP, purchase order/PO, ACK/ASN/EDI, receipt, application, letter, memo, packing slip, bill of lading, fax, scanned image, screenshot, photo of a document.
+  * The step touches a communication: email, email thread, inbox triage, voicemail, call transcript, chat message, SMS, ticket text, support case body, social message, customer message.
+  * The step touches a form: web form, intake form, application form, questionnaire, survey, submission, claim form, onboarding form, KYC form, attachment.
+  * Anything described as "extract fields from", "read X", "parse X", "pull data from X", "ingest X", "intake X", "classify X" where X is one of the above artifacts.
+  When this happens you MUST:
   1. Add "IXP" to the capabilities list (and NEVER list "Doc Understanding" or "Communications Mining" separately).
-  2. Use role "IXP" (not "BOT") for the corresponding step. The step description should say what's being processed, e.g. "Extract claim fields via IXP", "Triage emails with IXP", "Read invoice line items via IXP".
-- MAESTRO IS MANDATORY whenever the solution involves orchestration, routing, handoffs across agents/bots/humans, workload management, workflow engine, "process orchestrator", or any multi-step coordination. Default to including "Maestro" in capabilities on any solution with 3+ steps spanning multiple roles.
+  2. Use role "IXP" (not "BOT", and not "AGENT") for that step. Description should name what's being processed, e.g. "Extract claim fields via IXP", "Triage emails with IXP", "Read invoice line items via IXP", "Parse intake form fields".
+- MAESTRO IS MANDATORY whenever orchestration appears anywhere in the notes. Treat any of the following as an orchestration signal:
+  * Explicit mentions: "Maestro", "orchestration", "orchestrate", "orchestrator", "process orchestrator", "workflow engine".
+  * Coordination patterns: routing, dispatch, handoff between agents/bots/humans, queue management, SLA management, escalation, prioritization across queues, workload registration, workflow registration, process controller.
+  * Multi-step solutions where work moves across more than one actor type (agents, bots, humans, IXP). Any solution with 3+ steps spanning multiple roles MUST include Maestro by default — orchestration is implicit.
 - A "--- SUPPORTING DOCS ---" section (PDD, process map, transcript) attached to the notes is the source of truth for the steps. Map the solution flow and step roles closely to whatever the process map describes. If the process map has 12 low-level steps, abstract up one level so the slide has 5-7 steps that capture the key transitions, but preserve the order and the role at each transition.
 
 TRANSPARENCY RULES FOR NUMBERS (follow carefully):
@@ -186,16 +195,34 @@ def static_files(filename):
 
 
 _IXP_TRIGGERS = (
+    # Product names / synonyms
     'doc understanding', 'document understanding', 'docunderstanding',
     'communications mining', 'communication mining', 'comms mining',
     'intelligent document', 'idp', 'ocr',
-    'pdf', 'invoice', 'claim', ' email', 'emails', 'fax', 'forms',
-    'transcript', 'unstructured', 'extract field', 'parse',
-    'intake document', 'intake form',
+    # Document artifacts
+    'pdf', 'invoice', 'claim', 'fax', 'form ', 'forms', 'questionnaire',
+    'survey', 'application form', 'intake form', 'intake document',
+    'contract', 'statement', 'remittance', 'rfq', 'rfp', 'po ', 'purchase order',
+    'receipt', 'ack', 'asn', 'edi', 'attachment', 'packing slip', 'bill of lading',
+    'letter', 'memo', 'scan', 'scanned', 'screenshot',
+    # Communications artifacts
+    ' email', 'emails', 'inbox', 'voicemail', 'call transcript', 'transcript',
+    'chat message', 'sms', 'ticket text', 'support case', 'customer message',
+    # Action verbs that signal IXP work
+    'unstructured', 'extract field', 'extract fields', 'parse', 'read invoice',
+    'read claim', 'read email', 'read pdf', 'read form', 'read document',
+    'classify document', 'classify email', 'pull data from', 'pull fields',
+    'ingest document', 'ingest email', 'ingest form', 'ingest invoice',
+    'kyc', 'onboarding form',
 )
 _MAESTRO_TRIGGERS = (
-    'maestro', 'orchestrat', 'route', 'routing', 'handoff', 'hand off',
-    'workflow engine', 'workload', 'process orchestrator', 'coordinat',
+    # Explicit
+    'maestro', 'orchestrat', 'process orchestrator', 'workflow engine',
+    'workload registration', 'workflow registration', 'process controller',
+    # Coordination patterns
+    'route', 'routing', 'dispatch', 'handoff', 'hand off', 'hand-off',
+    'handover', 'hand over', 'hand-over', 'sla manage', 'sla-manage',
+    'escalat', 'queue manage', 'priorit', 'workload', 'coordinat',
 )
 
 
@@ -231,17 +258,26 @@ def _enforce_capability_rules(parsed, source_text):
 
     parsed['capabilities'] = caps
 
-    # Step-level: rewrite ANY step that looks like document/communication intake as IXP,
-    # regardless of original role (BOT or AGENT).
+    # Step-level: rewrite ANY step that looks like document/communication/form
+    # intake as IXP, regardless of original role (BOT or AGENT).
     doc_action_words = (
         'extract', 'parse', 'read', 'classify', 'intake', 'ingest', 'triage',
         'retrieve', 'fetch', 'pull', 'process', 'capture', 'index', 'ocr',
+        'analyze', 'analyse', 'review', 'scan', 'recognize', 'recognise',
+        'identify field', 'identify fields',
     )
     doc_object_words = (
-        'document', 'doc', 'pdf', 'email', 'invoice', 'claim', 'form', 'fax',
-        'transcript', 'communication', 'ixp', 'ack', 'asn', 'edi', 'attachment',
-        'po ', 'purchase order', 'receipt', 'statement', 'contract', 'rfq',
-        'rfp', 'remittance',
+        # Documents
+        'document', 'doc ', 'pdf', 'invoice', 'claim', 'form', 'fax',
+        'transcript', 'ack', 'asn', 'edi', 'attachment', 'po ', 'purchase order',
+        'receipt', 'statement', 'contract', 'rfq', 'rfp', 'remittance',
+        'application', 'letter', 'memo', 'questionnaire', 'survey', 'submission',
+        'packing slip', 'bill of lading', 'image', 'scanned',
+        # Communications
+        'email', 'inbox', 'voicemail', 'call note', 'chat', 'sms', 'ticket',
+        'support case', 'customer message', 'communication', 'comms ',
+        # Other
+        'ixp', 'kyc',
     )
     for s in steps:
         if not isinstance(s, dict):
@@ -421,7 +457,6 @@ def parse_docs():
                 results.append({'name': f.filename, 'text': f'[File too large: {f.filename}, max 10MB]'})
                 continue
             text = _extract_text_from_upload(f.filename, blob)
-            # Cap per-file text to keep prompt size reasonable
             if len(text) > 20000:
                 text = text[:20000] + '\n[...truncated...]'
             results.append({'name': f.filename, 'text': text})

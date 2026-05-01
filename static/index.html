@@ -214,6 +214,19 @@
   input:focus, textarea:focus, select:focus { border-color: var(--teal); }
   input::placeholder, textarea::placeholder { color: var(--text-dim); }
   textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+  /* missing-required-field highlight */
+  input.invalid, textarea.invalid {
+    border-color: #E53E3E !important;
+    background: rgba(229, 62, 62, 0.06);
+    box-shadow: 0 0 0 1px #E53E3E inset;
+  }
+  .class-tabs.invalid {
+    border-color: #E53E3E !important;
+    box-shadow: 0 0 0 1px #E53E3E inset;
+  }
+  .field-error-msg {
+    margin-top: 6px; font-size: 11px; color: #E53E3E; font-weight: 500;
+  }
 
   /* dynamic lists */
   .dynamic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -380,7 +393,7 @@
       </div>
       <div class="frow one">
         <div class="field">
-          <label>Account team contact <span class="req-star">*</span> <span class="hint">Name + email is enough; lands in slide speaker notes</span></label>
+          <label style="color:var(--red,#E53E3E);font-size:14px">Account team contact <span class="req-star">*</span> <span class="hint">required before generate &mdash; name + email lands in slide speaker notes</span></label>
           <input id="accountTeam" type="text" placeholder="e.g. Jane Doe, jane@uipath.com"/>
         </div>
       </div>
@@ -596,7 +609,11 @@
     BOT:   '/icons/bpmn_robot.png',
     HUMAN: '/icons/bpmn_person.png',
     IXP:   'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231E9D3F" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+      '<circle cx="12" cy="12" r="11" fill="#5BBE82"/>' +
+      '<path d="M14.2 7.5H9.8a.8 .8 0 0 0 -.8 .8v6.4a.8 .8 0 0 0 .8 .8h4.4a.8 .8 0 0 0 .8 -.8V9.3z" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
+      '<polyline points="14.2 7.5 14.2 9.3 16 9.3" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
+      '</svg>'
     )
   };
   function buildRow_steps(role, description) {
@@ -1015,14 +1032,80 @@
     finally { btn.disabled = false; }
   };
 
+  // Required field highlighting — each entry: {id, label, isClassification?}
+  const REQUIRED_FIELDS = [
+    { id: 'company',      label: 'Company' },
+    { id: 'title',        label: 'Use case title' },
+    { id: 'bc0',          label: 'Industry' },
+    { id: 'bc1',          label: 'Function' },
+    { id: 'problemDesc',  label: 'Problem description' },
+    { id: 'solutionDesc', label: 'Solution description' },
+    { id: 'accountTeam',  label: 'Account team contact' },
+    { id: 'classificationValue', label: 'Sharing classification', isClassification: true },
+  ];
+  function clearRequiredHighlights() {
+    document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+  }
+  // Clear an individual field's red highlight as soon as the user types in it
+  REQUIRED_FIELDS.forEach(f => {
+    if (f.isClassification) return;
+    const el = document.getElementById(f.id);
+    if (!el) return;
+    el.addEventListener('input', () => el.classList.remove('invalid'));
+  });
+  // Clearing classification highlight when a tab is clicked
+  document.querySelectorAll('.class-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      const tabs = document.querySelector('.class-tabs');
+      if (tabs) tabs.classList.remove('invalid');
+    });
+  });
+
   document.getElementById('generateBtn').onclick = async () => {
     const status = document.getElementById('generateStatus');
     const btn = document.getElementById('generateBtn');
     const data = collectData();
-    if (!data.title) { status.textContent = 'Title is required.'; status.classList.add('err'); return; }
-    if (!data.company) { status.textContent = 'Company is required.'; status.classList.add('err'); return; }
-    if (!data.classification) { status.textContent = 'Pick a sharing classification (External / Anonymize / Internal).'; status.classList.add('err'); return; }
-    if (!data.account_team) { status.textContent = 'Account team contact (CSM/AE/TAM/SE) is required.'; status.classList.add('err'); return; }
+    clearRequiredHighlights();
+
+    // Validate every required field; collect all that are missing.
+    const missing = [];
+    REQUIRED_FIELDS.forEach(f => {
+      if (f.isClassification) {
+        if (!data.classification) {
+          const tabs = document.querySelector('.class-tabs');
+          if (tabs) tabs.classList.add('invalid');
+          missing.push(f);
+        }
+        return;
+      }
+      const el = document.getElementById(f.id);
+      const val = (el && el.value || '').trim();
+      if (!val) {
+        if (el) el.classList.add('invalid');
+        missing.push(f);
+      }
+    });
+
+    if (missing.length) {
+      // Make sure the parent cards of any invalid fields are open so the user sees them
+      document.querySelectorAll('.invalid, .class-tabs.invalid').forEach(el => {
+        const card = el.closest('.card');
+        if (card) card.classList.add('open');
+      });
+      // Scroll to the first invalid field
+      const firstEl = missing[0].isClassification
+        ? document.querySelector('.class-tabs.invalid')
+        : document.getElementById(missing[0].id);
+      if (firstEl && firstEl.scrollIntoView) {
+        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const labels = missing.map(m => m.label).join(', ');
+      status.textContent = missing.length === 1
+        ? labels + ' is required.'
+        : 'Missing required: ' + labels + '.';
+      status.classList.add('err');
+      return;
+    }
     status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
     try {
@@ -1104,7 +1187,7 @@
     if (pills.length === 0) return [360, 500];
     // Rough width estimate — if likely to wrap to 2 rows, tighten
     const approxWidth = pills.reduce((acc, p) => acc + 0.22 + p.length * 0.075 + 0.08, 0);
-    return approxWidth > 5.3 ? [180, 260] : [280, 400];
+    return approxWidth > 5.3 ? [200, 280] : [280, 400];
   }
   function countCharsSmart(fieldId, counterId, getThresholds) {
     const el = document.getElementById(fieldId);

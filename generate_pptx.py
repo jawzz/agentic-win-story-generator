@@ -272,17 +272,18 @@ def _draw_tags(slide, T, data, divider_y):
     # Render as a horizontal row, right-aligned, just above the divider.
     # Pills are sized per-tag — INTERNAL pill is bigger to be unmissable.
     gap = 0.12
-    y_anchor_bottom = divider_y - 0.10
-    char_w_big = 0.085
+    # Bumped up from divider_y - 0.10 so pill row sits a touch higher on the page
+    y_anchor_bottom = divider_y - 0.20
+    char_w_big = 0.080
     char_w_small = 0.075
     pill_pad_big = 0.22
     pill_pad_small = 0.18
     sized = []
     for (label, color) in tags:
         if 'INTERNAL' in label:
-            h = 0.36
+            h = 0.32
             w = pill_pad_big*2 + len(label) * char_w_big
-            font_size = 11
+            font_size = 10
         else:
             h = 0.28
             w = pill_pad_small*2 + len(label) * char_w_small
@@ -559,7 +560,8 @@ def _build_slide(slide, *, theme, data):
         m_w = 0.18*2 + len(m_label)*0.075
         m_h = 0.28
         m_x = 0.5 + 12.33 - m_w - 0.30
-        m_y = cy + 0.13
+        # Nudged up slightly (was cy + 0.13)
+        m_y = cy + 0.09
         m_pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE,
                                          Inches(m_x), Inches(m_y), Inches(m_w), Inches(m_h))
         m_pill.adjustments[0] = 0.5
@@ -629,23 +631,25 @@ def _build_slide(slide, *, theme, data):
             icon_x = x + tile_w - icon_size - 0.02
             icon_y = step_y + 0.07  # was 0.02 — pushed down 5px to better center
             if r == 'IXP':
-                # Green circle background with a small white document inside
+                # Green circle background with an outlined (no-fill) document inside,
+                # ~80% of prior size so the green shows through clearly.
                 circle = slide.shapes.add_shape(MSO_SHAPE.OVAL,
                                                 Inches(icon_x), Inches(icon_y),
                                                 Inches(icon_size), Inches(icon_size))
                 circle.fill.solid(); circle.fill.fore_color.rgb = role_c[r]
                 circle.line.fill.background()
                 circle.shadow.inherit = False
-                # White document shape, smaller, centered inside the circle
-                doc_w = icon_size * 0.55
-                doc_h = icon_size * 0.62
+                # Document shape: outline only (no fill), 80% of previous size, centered
+                doc_w = icon_size * 0.55 * 0.80
+                doc_h = icon_size * 0.62 * 0.80
                 doc_x = icon_x + (icon_size - doc_w) / 2
                 doc_y = icon_y + (icon_size - doc_h) / 2
                 doc = slide.shapes.add_shape(MSO_SHAPE.FLOWCHART_DOCUMENT,
                                               Inches(doc_x), Inches(doc_y),
                                               Inches(doc_w), Inches(doc_h))
-                doc.fill.solid(); doc.fill.fore_color.rgb = T['WHITE']
-                doc.line.fill.background()
+                doc.fill.background()  # transparent — green shows through
+                doc.line.color.rgb = T['WHITE']
+                doc.line.width = Pt(1.25)
                 doc.shadow.inherit = False
             else:
                 icon_map = {'BOT': BPMN_ROBOT, 'AGENT': BPMN_AGENT, 'HUMAN': BPMN_PERSON}
@@ -789,6 +793,17 @@ def build_pptx(data, template_path=None):
     caps = data.get('capabilities') or []
     if caps:
         notes_lines.append(f"Capabilities: {', '.join(str(c) for c in caps)}")
+    if notes_lines:
+        try:
+            slide.notes_slide.notes_text_frame.text = '\n'.join(notes_lines)
+        except Exception:
+            pass
+
+    buf = io.BytesIO()
+    p.save(buf)
+    buf.seek(0)
+    return buf.read(), 1
+nd(f"Capabilities: {', '.join(str(c) for c in caps)}")
     if notes_lines:
         try:
             slide.notes_slide.notes_text_frame.text = '\n'.join(notes_lines)
