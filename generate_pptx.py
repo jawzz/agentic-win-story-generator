@@ -803,14 +803,3 @@ def build_pptx(data, template_path=None):
     p.save(buf)
     buf.seek(0)
     return buf.read(), 1
-nd(f"Capabilities: {', '.join(str(c) for c in caps)}")
-    if notes_lines:
-        try:
-            slide.notes_slide.notes_text_frame.text = '\n'.join(notes_lines)
-        except Exception:
-            pass
-
-    buf = io.BytesIO()
-    p.save(buf)
-    buf.seek(0)
-    return buf.read(), 1
