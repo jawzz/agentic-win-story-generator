@@ -1,5 +1,5 @@
 """
-Agentic Win Story Generator - Flask Backend v2
+Win Story Generator - Flask Backend v2
 Serves the frontend, handles AI extraction, and generates a single-slide
 agentic use case PPTX.
 
@@ -396,9 +396,9 @@ def generate():
         body = request.get_json(force=True) or {}
         result = build_pptx(body)
         pptx_bytes = result[0] if isinstance(result, tuple) else result
-        company = (body.get('company') or 'agentic_win_story').strip()
+        company = (body.get('company') or 'win_story').strip()
         safe = ''.join(c if c.isalnum() or c in ('_', '-') else '_' for c in company)
-        filename = f'{safe}_agentic_win_story.pptx'
+        filename = f'{safe}_win_story.pptx'
         # Fire-and-forget tracking
         _post_to_roi_webhook(body)
         return Response(

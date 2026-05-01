@@ -1,4 +1,4 @@
-# UiPath Agentic Win Story Generator
+# UiPath Win Story Generator
 
 Single-URL tool for generating branded UiPath agentic use case slides matching the Agent Use Case Template v10.
 

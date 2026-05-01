@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>UiPath Agentic Win Story Generator</title>
+<title>UiPath Win Story Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -295,7 +295,7 @@
 <div class="topbar">
   <img src="/uipath-logo.svg" alt="UiPath"/>
   <span class="topbar-sep">|</span>
-  <span class="topbar-title">Agentic Win Story Generator</span>
+  <span class="topbar-title">Win Story Generator</span>
   <span class="topbar-spacer"></span>
   <button class="topbar-action" onclick="clearAll()">New Story</button>
 </div>
@@ -1116,7 +1116,7 @@
       });
       if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Generate failed'); }
       const blob = await resp.blob();
-      const filename = (data.company || 'agentic_win_story').replace(/[^\w\s-]/g, '_') + '_agentic_win_story.pptx';
+      const filename = (data.company || 'win_story').replace(/[^\w\s-]/g, '_') + '_win_story.pptx';
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);

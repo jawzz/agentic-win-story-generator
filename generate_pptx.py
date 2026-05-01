@@ -1,5 +1,5 @@
 """
-Agentic Win Story Generator - PPTX Engine v2
+Win Story Generator - PPTX Engine v2
 Builds a single-slide agentic use case deck using python-pptx.
 
 v2 changes:
