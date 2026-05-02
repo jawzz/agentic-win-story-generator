@@ -246,13 +246,11 @@ def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
 def _draw_tags(slide, T, data, divider_y):
     """Render small pill tags (INTERNAL, MAESTRO, EASY PROCESS) just above the divider on the right."""
     tags = []
-    # Classification flag — three states
+    # Classification flag — only "internal" raises the INTERNAL USE pill.
+    # "anonymize" handled separately: customer name swapped for industry-generic
+    # label upstream, no pill needed.
     cls = (data.get('classification') or '').lower()
-    if cls == 'internal':
-        tags.append(('FOR INTERNAL USE ONLY', T['RED']))
-    elif cls == 'anonymize' or data.get('anonymize'):
-        tags.append(('FOR INTERNAL USE ONLY', T['RED']))
-    elif data.get('internal'):
+    if cls == 'internal' or data.get('internal'):
         tags.append(('FOR INTERNAL USE ONLY', T['RED']))
     # Maestro pill is rendered on the solution card now, not in the top-right row.
     # Easy process — explicit flag OR auto-detect (<=5 steps, no AGENT, no IXP)
@@ -434,7 +432,7 @@ def _build_slide(slide, *, theme, data):
         r2.font.color.rgb = T['TEXT_MUTED']
 
     # --- UiPath + Customer lockup in top-right ---
-    anonymize = bool(data.get('anonymize'))
+    anonymize = bool(data.get('anonymize')) or (data.get('classification') or '').lower() == 'anonymize'
     company_name = data.get('company', '')
     if anonymize:
         # Replace customer name with industry-generic label, no logo
@@ -649,7 +647,7 @@ def _build_slide(slide, *, theme, data):
                                               Inches(doc_w), Inches(doc_h))
                 doc.fill.background()  # transparent — green shows through
                 doc.line.color.rgb = T['WHITE']
-                doc.line.width = Pt(1.25)
+                doc.line.width = Pt(0.25)
                 doc.shadow.inherit = False
             else:
                 icon_map = {'BOT': BPMN_ROBOT, 'AGENT': BPMN_AGENT, 'HUMAN': BPMN_PERSON}
