@@ -807,7 +807,17 @@
   }
 
   // ---------- Populate form from AI ----------
+  // Track whether the user has edited the form since the last AI populate.
+  // Used to warn before re-extract overwrites their work.
+  let formDirty = false;
+  function markFormDirty() { formDirty = true; }
+  document.addEventListener('input', (e) => {
+    // Only count edits inside the form area, not the raw notes textarea or doc upload
+    if (e.target && e.target.closest && e.target.closest('.card')) markFormDirty();
+  });
+
   function populateForm(d) {
+    formDirty = false; // reset after AI populate
     if (d.breadcrumb && d.breadcrumb.length >= 3) {
       document.getElementById('bc0').value = d.breadcrumb[0] || '';
       document.getElementById('bc1').value = d.breadcrumb[1] || '';
@@ -914,6 +924,10 @@
     const text = document.getElementById('rawText').value.trim();
     const status = document.getElementById('extractStatus');
     if (!text && !docFiles.length) { status.textContent = 'Add notes or drop supporting docs first.'; status.classList.add('err'); return; }
+    if (formDirty) {
+      const ok = confirm('You\'ve edited the form since the last AI extract. Running Extract again will OVERWRITE all of your edits with a fresh AI pass. Continue?');
+      if (!ok) { status.textContent = 'Extract cancelled. Your edits are preserved.'; return; }
+    }
     let merged = text || '';
     const docBlocks = docFiles.map(f => '### ' + f.name + '\n' + f.text);
     if (docBlocks.length) {
@@ -937,6 +951,12 @@
     const text = document.getElementById('processDesc').value.trim();
     const status = document.getElementById('extractStepsStatus');
     if (!text) { status.textContent = 'Describe the process first.'; status.classList.add('err'); return; }
+    // Warn if user has rows in the steps list that they may have edited
+    const existingSteps = document.querySelectorAll('#steps .dynamic-item').length;
+    if (existingSteps > 0) {
+      const ok = confirm('This will replace the ' + existingSteps + ' step(s) currently in the list with a fresh AI pass. Continue?');
+      if (!ok) { status.textContent = 'Step extract cancelled. Existing steps preserved.'; return; }
+    }
     status.textContent = 'Extracting steps...'; status.classList.remove('err');
     try {
       const resp = await fetch('/extract-steps', {
@@ -1108,6 +1128,9 @@
     }
     status.textContent = 'Generating...'; status.classList.remove('err');
     btn.disabled = true;
+    // Log the exact payload being sent so power users can verify in DevTools
+    // (Backend passes this straight to build_pptx with no AI in between.)
+    console.log('[WinStoryGen] Sending to /generate (this is the EXACT data used to build the slide):', data);
     try {
       const resp = await fetch('/generate', {
         method: 'POST',
@@ -1120,7 +1143,14 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
-      status.textContent = 'Downloaded.';
+      // Show a quick summary of what was actually sent so users can confirm their edits made it
+      const summary = [
+        data.title ? '"' + data.title.slice(0, 40) + '"' : '',
+        data.steps.length + ' step' + (data.steps.length === 1 ? '' : 's'),
+        data.outcomes.length + ' outcome' + (data.outcomes.length === 1 ? '' : 's'),
+        data.capabilities.length + ' capabilit' + (data.capabilities.length === 1 ? 'y' : 'ies'),
+      ].filter(Boolean).join(' · ');
+      status.textContent = 'Downloaded. Built from: ' + summary;
     } catch (e) { status.textContent = 'Error: ' + e.message; status.classList.add('err'); }
     finally { btn.disabled = false; }
   };
