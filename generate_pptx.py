@@ -629,19 +629,23 @@ def _build_slide(slide, *, theme, data):
             icon_x = x + tile_w - icon_size - 0.02
             icon_y = step_y + 0.07  # was 0.02 — pushed down 5px to better center
             if r == 'IXP':
-                # Green circle background with an outlined (no-fill) document inside,
-                # ~80% of prior size so the green shows through clearly.
+                # Green circle. Shrunk to ~85% of icon_size so its visible footprint
+                # matches the BPMN PNG icons (which have transparent padding inside
+                # the PNG box). Centered within the same icon_size bounding box.
+                ixp_circle_d = icon_size * 0.85
+                ixp_cx = icon_x + (icon_size - ixp_circle_d) / 2
+                ixp_cy = icon_y + (icon_size - ixp_circle_d) / 2
                 circle = slide.shapes.add_shape(MSO_SHAPE.OVAL,
-                                                Inches(icon_x), Inches(icon_y),
-                                                Inches(icon_size), Inches(icon_size))
+                                                Inches(ixp_cx), Inches(ixp_cy),
+                                                Inches(ixp_circle_d), Inches(ixp_circle_d))
                 circle.fill.solid(); circle.fill.fore_color.rgb = role_c[r]
                 circle.line.fill.background()
                 circle.shadow.inherit = False
-                # Document shape: outline only (no fill), 80% of previous size, centered
-                doc_w = icon_size * 0.55 * 0.80
-                doc_h = icon_size * 0.62 * 0.80
-                doc_x = icon_x + (icon_size - doc_w) / 2
-                doc_y = icon_y + (icon_size - doc_h) / 2
+                # Document shape: outline only (no fill), sized off the new circle
+                doc_w = ixp_circle_d * 0.55
+                doc_h = ixp_circle_d * 0.62
+                doc_x = ixp_cx + (ixp_circle_d - doc_w) / 2
+                doc_y = ixp_cy + (ixp_circle_d - doc_h) / 2
                 doc = slide.shapes.add_shape(MSO_SHAPE.FLOWCHART_DOCUMENT,
                                               Inches(doc_x), Inches(doc_y),
                                               Inches(doc_w), Inches(doc_h))
