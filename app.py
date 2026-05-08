@@ -23,15 +23,18 @@ CORS(app)
 EXTRACTION_PROMPT = """You are a UiPath customer success writer. A rep has shared raw notes about an agentic automation win. Transform these notes into a polished, structured story for a single-slide agent use case template.
 
 HARD CAPABILITY MAPPING RULES (apply before everything else):
-- IXP IS MANDATORY whenever the source notes describe ANY step that pulls, reads, extracts, classifies, parses, ingests, or analyzes information from a document, communication, or form. This is broader than it sounds — assume IXP applies if ANY of the following is true:
-  * The notes mention "Document Understanding", "Doc Understanding", "Communications Mining", "intelligent document processing", "IDP", or "OCR".
-  * The step touches a document type: PDF, invoice, claim, contract, statement, remittance, RFQ/RFP, purchase order/PO, ACK/ASN/EDI, receipt, application, letter, memo, packing slip, bill of lading, fax, scanned image, screenshot, photo of a document.
-  * The step touches a communication: email, email thread, inbox triage, voicemail, call transcript, chat message, SMS, ticket text, support case body, social message, customer message.
-  * The step touches a form: web form, intake form, application form, questionnaire, survey, submission, claim form, onboarding form, KYC form, attachment.
+- DOCUMENT UNDERSTANDING vs IXP: There are two valid product names for document/communication processing. Decide which to use based on what the rep wrote:
+  * Use "DU" (the older Document Understanding product) ONLY when the notes EXPLICITLY say "Document Understanding", "Doc Understanding", or "DU" (older deployments often pre-date IXP and the rep will name DU directly).
+  * Use "IXP" in ALL OTHER document/communication/form processing cases — including when the notes mention "Communications Mining", "intelligent document processing", "IDP", "OCR", or describe the work without naming a product.
+  * Treat DU and IXP as interchangeable for layout purposes — they share the same green icon and slide treatment. The label is what differs.
+- DOCUMENT/COMMUNICATION/FORM PROCESSING IS MANDATORY (mapped to either DU or IXP per the rule above) whenever ANY step pulls, reads, extracts, classifies, parses, ingests, or analyzes information from:
+  * A document type: PDF, invoice, claim, contract, statement, remittance, RFQ/RFP, purchase order/PO, ACK/ASN/EDI, receipt, application, letter, memo, packing slip, bill of lading, fax, scanned image, screenshot, photo of a document.
+  * A communication: email, email thread, inbox triage, voicemail, call transcript, chat message, SMS, ticket text, support case body, social message, customer message.
+  * A form: web form, intake form, application form, questionnaire, survey, submission, claim form, onboarding form, KYC form, attachment.
   * Anything described as "extract fields from", "read X", "parse X", "pull data from X", "ingest X", "intake X", "classify X" where X is one of the above artifacts.
   When this happens you MUST:
-  1. Add "IXP" to the capabilities list (and NEVER list "Doc Understanding" or "Communications Mining" separately).
-  2. Use role "IXP" (not "BOT", and not "AGENT") for that step. Description should name what's being processed, e.g. "Extract claim fields via IXP", "Triage emails with IXP", "Read invoice line items via IXP", "Parse intake form fields".
+  1. Add "DU" OR "IXP" to capabilities (per rule above). Never list "Doc Understanding" or "Communications Mining" as their own separate items — collapse them into DU or IXP.
+  2. Use role "DU" or "IXP" (matching the capability) for that step — never "BOT" and never "AGENT". Description should name what's being processed, e.g. "Extract claim fields via DU", "Triage emails with IXP", "Read invoice line items via DU".
 - MAESTRO IS MANDATORY whenever orchestration appears anywhere in the notes. Treat any of the following as an orchestration signal:
   * Explicit mentions: "Maestro", "orchestration", "orchestrate", "orchestrator", "process orchestrator", "workflow engine".
   * Coordination patterns: routing, dispatch, handoff between agents/bots/humans, queue management, SLA management, escalation, prioritization across queues, workload registration, workflow registration, process controller.
@@ -66,7 +69,8 @@ Rules (follow strictly):
 - CAPABILITIES: 3-6 UiPath product names/capabilities used. Canonical names (use these exactly):
     - "Agents" - AI reasoning, autonomous decisioning
     - "Maestro" - the orchestration layer. ALWAYS include Maestro when the solution involves coordinating agents, bots, or humans across a process, a workflow engine, process/workload orchestration, routing, handoffs, SLA management, or anything the notes call "workload registration", "workflow registration", "orchestration", or "process controller". Default to including Maestro on any multi-step agentic solution.
-    - "IXP" - the umbrella term for intelligent document + communications processing. IXP includes Document Understanding AND Communications Mining. ALWAYS use "IXP" — never list "Doc Understanding", "Document Understanding", or "Communications Mining" as separate capabilities. Whenever the notes mention parsing PDFs, emails, forms, invoices, claims, faxes, images, chat transcripts, or call transcripts, that's IXP.
+    - "IXP" - the umbrella term for intelligent document + communications processing. Default name. Use IXP for any modern document/communication/form processing.
+    - "DU" - Document Understanding, the older product. Use ONLY when the rep notes explicitly mention "Document Understanding" or "DU" (older deployments). Same green slide treatment as IXP. Never list "Communications Mining" as separate — collapse into IXP.
     - "Unattended Robots" - deterministic RPA, system-to-system automation
     - "Attended Robots" - desktop assistant bots with humans
     - "Action Center" - human-in-the-loop approvals and reviews
@@ -78,7 +82,8 @@ Rules (follow strictly):
   - "AGENT" = AI reasoning, classification, routing, decisions
   - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
   - "HUMAN" = human in the loop (review, approve, sign-off)
-  - "IXP"   = documents and communications processing — the umbrella for Document Understanding AND Communications Mining. Use IXP for any step that parses PDFs, emails, forms, invoices, claims, faxes, images, chat transcripts, or call transcripts. Do NOT use BOT for these.
+  - "IXP"   = documents and communications processing — the umbrella for any step that parses PDFs, emails, forms, invoices, claims, faxes, images, chat transcripts, or call transcripts. Default for doc/comm work. Do NOT use BOT for these.
+  - "DU"    = Document Understanding (the older product). Use ONLY when notes explicitly say "Document Understanding" or "DU". Otherwise use IXP for all doc/comm/form processing.
   Step description: 3-6 words, imperative. When a step orchestrates or routes work across agents/bots/humans, say Maestro. DO NOT invent steps, agents, bots, humans, or IXP steps that the notes don't mention. If the notes only describe 3 steps, return 3 steps.
 - OUTCOMES: 1-5 outcome tiles. Each item: {value, label, source, note}. See transparency rules above. Value examples: "$558K", "90%", "9 min", or qualitative "Reduced" / "Faster" / "Fewer" / "Yes". Label examples: "revenue released", "cycle time", "of workflow automated". Empty array if the notes truly have no outcomes.
 - ATTRIBUTABLE IMPACT (optional): list of directional metrics directly moved. Each item: {"direction": "up" | "down", "text": "metric name"}. 3-5 items. Empty list if none clearly inferable from the notes. Use "down" for reductions (cycle time, touches, backlogs) and "up" for improvements (yield, satisfaction, throughput). Only list metrics that the notes actually discuss or clearly imply — do NOT invent metrics the rep didn't mention.
@@ -97,7 +102,7 @@ Return ONLY a valid JSON object. No markdown fences, no preamble:
   "problem_stats": [{"value": "string", "label": "string", "source": "stated|calculated|estimated|qualitative", "note": "string (required if calculated/estimated, else optional)"}],
   "solution_desc": "string",
   "capabilities": ["string", "..."],
-  "steps": [{"role": "AGENT|BOT|HUMAN", "description": "short step name"}],
+  "steps": [{"role": "AGENT|BOT|HUMAN|IXP|DU", "description": "short step name"}],
   "outcomes": [{"value": "string", "label": "string", "source": "stated|calculated|estimated|qualitative", "note": "string (required if calculated/estimated, else optional)"}],
   "attributable": [{"direction": "up|down", "text": "metric name"}],
   "downstream": [{"direction": "up|down", "text": "metric name"}],
@@ -105,9 +110,13 @@ Return ONLY a valid JSON object. No markdown fences, no preamble:
 }"""
 
 
-SUGGESTIONS_PROMPT = """You are a senior UiPath CSM helping a rep strengthen an agentic win story. Be brutally concise. You are talking to an internal UiPath seller (CSM or AE), not the customer.
+SUGGESTIONS_PROMPT = """You are a seasoned CSM at UiPath. Your team is building 1-slide success stories for customers who have successfully deployed agentic automations into production. You are talking to an internal UiPath seller (CSM or AE), not the customer.
 
-Review the story data and return 1-4 suggestions — ONLY the most impactful gaps or angles. Fewer is better. Skip anything obvious or already covered.
+Your primary job: ensure the "Measured outcomes" section has quantitative stats that are most relevant and attention-grabbing to customer and executive readers. Review the slide data and recommend whether the current Measured outcomes are strong or whether better options exist given the context, and why. Make recommendations as concrete and metric-based as possible from the information provided.
+
+Beyond Measured outcomes, you may also surface the highest-leverage gaps in the rest of the story — a missing problem stat, a fuzzy capability claim, a downstream effect worth naming. But Measured outcomes is the first thing you scrutinize.
+
+Be brutally concise. Fewer is better. Skip anything obvious or already covered.
 
 Return ONLY this JSON:
 {
@@ -123,10 +132,17 @@ Return ONLY this JSON:
 
 For "tip", suggest plausible internal sources like: Salesforce opportunity record, Gainsight CSM notes, the AE, QBR/EBR deck, UiPath Insights, Automation Hub, the customer champion, internal Slack channels, product marketing. Pick what actually fits — don't force it. If a suggestion isn't about missing data (e.g. a reframe or angle), the tip can be an action instead (e.g. "Reframe the intro to lead with revenue unlocked").
 
+Rules for what counts as a strong Measured outcome:
+- A specific number paired with a meaningful business unit. "$558K revenue released" beats "90% automation". "Cycle time 6 hrs -> 9 min" beats "faster".
+- Tied to outcomes a customer/executive cares about: revenue unlocked, capacity freed, decision quality, error/risk reduced, customer experience, compliance posture, time-to-cash.
+- Three classes of outcome to look for: financial (revenue/cost/capacity), operational (cycle time, throughput, error rate, SLA attainment), experiential (CSAT/NPS, employee satisfaction, audit readiness).
+- Watch for over-indexing on time savings only — that's the weakest framing for executives.
+- If outcomes are vague ("improved efficiency", "faster processing"), suggest a concrete metric the rep should chase down.
+
 Rules:
 - MAX 4 items. Prefer 2-3.
 - High priority only for the 1-2 most impactful.
-- Focus on: missing quant metrics (ROI, cycle time, FTE capacity, error rate, revenue), agentic value beyond time saved, story angles that reframe cost savings as revenue/capacity/decision-quality.
+- At least one suggestion should address Measured outcomes if there's any room to strengthen them.
 - No filler. Every suggestion must be concretely actionable.
 - Return ONLY the JSON. No markdown, no preamble."""
 
@@ -137,12 +153,13 @@ For each step, classify the actor role:
 - "AGENT" = AI reasoning, classification, routing, decisions
 - "BOT"   = deterministic RPA (data entry, API calls, portal polling, system updates)
 - "HUMAN" = human in the loop (review, approve, sign-off)
-- "IXP"   = documents and communications processing (extracting data from PDFs, emails, forms, invoices, claims, faxes, images). Use IXP — not BOT — for any step that parses unstructured documents.
+- "IXP"   = documents and communications processing (extracting data from PDFs, emails, forms, invoices, claims, faxes, images). Default for doc/comm work. Use IXP — not BOT — for any step that parses unstructured documents.
+- "DU"    = Document Understanding (older product). Use ONLY when the source notes explicitly say "Document Understanding" or "DU". Otherwise use IXP.
 
 Step description: 3-6 words, imperative (e.g. "Pull & classify inbound denials", "Extract fields via IXP", "Route via Maestro"). Use Maestro for orchestration, routing, or handoff steps.
 
 Return ONLY valid JSON:
-{"steps": [{"role": "AGENT|BOT|HUMAN", "description": "short step name"}]}"""
+{"steps": [{"role": "AGENT|BOT|HUMAN|IXP|DU", "description": "short step name"}]}"""
 
 
 def _call_claude(system, user_text, max_tokens=2048, timeout=45):
@@ -227,25 +244,48 @@ _MAESTRO_TRIGGERS = (
 
 
 def _enforce_capability_rules(parsed, source_text):
-    """Force IXP and Maestro into the output if the source text or steps imply them."""
+    """Force IXP/DU and Maestro into the output if the source text or steps imply them.
+
+    DU vs IXP routing: explicit "Document Understanding" / "DU" in source notes
+    means use DU (older product). All other doc/comm/form processing -> IXP.
+    """
     if not isinstance(parsed, dict):
         return parsed
     src = (source_text or '').lower()
     caps = list(parsed.get('capabilities') or [])
+
+    # Detect whether the user EXPLICITLY named DU. Only these literal phrases count.
+    du_explicit = any(t in src for t in (
+        'document understanding', 'doc understanding', 'docunderstanding',
+        ' du ', ' du.', ' du,', ' du)', ' du:', '(du)',
+    ))
+
+    # Map any "Document Understanding" / "Communications Mining" capabilities the
+    # AI emitted into the canonical name (DU if explicit, else IXP). Communications
+    # Mining always collapses to IXP.
+    canonical_caps = []
+    seen = set()
+    for c in caps:
+        cl = str(c).lower().strip()
+        if cl in ('doc understanding', 'document understanding', 'docunderstanding'):
+            target = 'DU' if du_explicit else 'IXP'
+        elif cl in ('communications mining', 'communication mining', 'comms mining'):
+            target = 'IXP'
+        else:
+            target = c
+        key = str(target).lower().strip()
+        if key not in seen:
+            canonical_caps.append(target); seen.add(key)
+    caps = canonical_caps
     caps_lower = [str(c).lower() for c in caps]
 
-    # Strip any forbidden synonyms from capabilities
-    forbidden = {'doc understanding', 'document understanding', 'docunderstanding',
-                 'communications mining', 'communication mining', 'comms mining'}
-    caps = [c for c in caps if str(c).lower().strip() not in forbidden]
-    caps_lower = [str(c).lower() for c in caps]
-
-    # IXP enforcement
-    ixp_in_text = any(t in src for t in _IXP_TRIGGERS)
-    ixp_in_caps = any('ixp' == c.strip() or 'ixp' in c.split() for c in caps_lower)
-    if ixp_in_text and not ixp_in_caps:
-        caps.append('IXP')
-        caps_lower.append('ixp')
+    # Doc/comm/form processing enforcement
+    doc_in_text = any(t in src for t in _IXP_TRIGGERS) or du_explicit
+    has_du = 'du' in caps_lower
+    has_ixp = any('ixp' == c.strip() or 'ixp' in c.split() for c in caps_lower)
+    if doc_in_text and not (has_du or has_ixp):
+        caps.append('DU' if du_explicit else 'IXP')
+        caps_lower.append('du' if du_explicit else 'ixp')
 
     # Maestro enforcement — required if triggers in text OR steps span 3+ different roles
     maestro_in_text = any(t in src for t in _MAESTRO_TRIGGERS)
@@ -283,12 +323,13 @@ def _enforce_capability_rules(parsed, source_text):
         if not isinstance(s, dict):
             continue
         role = str(s.get('role','')).upper()
-        if role == 'IXP':
+        if role in ('IXP', 'DU'):
             continue
         desc = str(s.get('description','')).lower()
-        # IXP if step describes acting on a document/communication artifact
+        # If step describes acting on a doc/comm artifact, route to DU (when
+        # explicit) or IXP (default).
         if any(t in desc for t in doc_object_words) and any(w in desc for w in doc_action_words):
-            s['role'] = 'IXP'
+            s['role'] = 'DU' if du_explicit else 'IXP'
 
     return parsed
 

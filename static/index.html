@@ -604,17 +604,19 @@
       derivationNote(source, note) +
     '</div>';
   }
+  const _GREEN_DOC_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '<circle cx="12" cy="12" r="11" fill="#5BBE82"/>' +
+    '<path d="M14.2 7.5H9.8a.8 .8 0 0 0 -.8 .8v6.4a.8 .8 0 0 0 .8 .8h4.4a.8 .8 0 0 0 .8 -.8V9.3z" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
+    '<polyline points="14.2 7.5 14.2 9.3 16 9.3" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
+    '</svg>'
+  );
   const roleIconMap = {
     AGENT: '/icons/bpmn_agent.png',
     BOT:   '/icons/bpmn_robot.png',
     HUMAN: '/icons/bpmn_person.png',
-    IXP:   'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
-      '<circle cx="12" cy="12" r="11" fill="#5BBE82"/>' +
-      '<path d="M14.2 7.5H9.8a.8 .8 0 0 0 -.8 .8v6.4a.8 .8 0 0 0 .8 .8h4.4a.8 .8 0 0 0 .8 -.8V9.3z" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
-      '<polyline points="14.2 7.5 14.2 9.3 16 9.3" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>' +
-      '</svg>'
-    )
+    IXP:   _GREEN_DOC_SVG,
+    DU:    _GREEN_DOC_SVG,  // older product; same visual treatment as IXP
   };
   function buildRow_steps(role, description) {
     role = role || 'AGENT';
@@ -626,6 +628,7 @@
         '<option value="BOT"'   + (role==='BOT'?' selected':'')   + '>BOT</option>' +
         '<option value="HUMAN"' + (role==='HUMAN'?' selected':'') + '>HUMAN</option>' +
         '<option value="IXP"'   + (role==='IXP'?' selected':'')   + '>IXP</option>' +
+        '<option value="DU"'    + (role==='DU'?' selected':'')    + '>DU</option>' +
       '</select>' +
       '<input type="text" placeholder="Step description" value="' + escapeAttr(description) + '" data-field="description" style="flex:1"/>' +
       '<button type="button" class="remove-btn">x</button>' +

@@ -576,19 +576,20 @@ def _build_slide(slide, *, theme, data):
             role = (st.get('role') or st.get('type') or 'AGENT').upper()
             if role in ('ROBOT',): role = 'BOT'
             if role in ('PERSON',): role = 'HUMAN'
-            # Accept AGENT, BOT, HUMAN, IXP — anything else falls back to AGENT
-            if role not in ('AGENT', 'BOT', 'HUMAN', 'IXP'):
+            # Accept AGENT, BOT, HUMAN, IXP, DU — anything else falls back to AGENT
+            if role not in ('AGENT', 'BOT', 'HUMAN', 'IXP', 'DU'):
                 role = 'AGENT'
             desc = (st.get('description') or st.get('name') or '').strip()
             norm_steps.append((role, desc))
         elif isinstance(st, (list, tuple)) and len(st) >= 2:
             r = str(st[0]).upper()
-            if r not in ('AGENT', 'BOT', 'HUMAN', 'IXP'):
+            if r not in ('AGENT', 'BOT', 'HUMAN', 'IXP', 'DU'):
                 r = 'AGENT'
             norm_steps.append((r, str(st[1])))
 
-    # SWAPPED COLORS: BOT=orange, AGENT=teal, HUMAN=gold, IXP=green
-    role_c = {'BOT': T['ORANGE'], 'AGENT': T['TEAL'], 'HUMAN': T['GOLD'], 'IXP': T['GREEN']}
+    # SWAPPED COLORS: BOT=orange, AGENT=teal, HUMAN=gold, IXP/DU=green
+    role_c = {'BOT': T['ORANGE'], 'AGENT': T['TEAL'], 'HUMAN': T['GOLD'],
+              'IXP': T['GREEN'], 'DU': T['GREEN']}
     n_steps = len(norm_steps)
 
     if n_steps > 0:
@@ -628,10 +629,10 @@ def _build_slide(slide, *, theme, data):
             icon_size = 0.22
             icon_x = x + tile_w - icon_size - 0.02
             icon_y = step_y + 0.07  # was 0.02 — pushed down 5px to better center
-            if r == 'IXP':
-                # Green circle. Shrunk to ~85% of icon_size so its visible footprint
-                # matches the BPMN PNG icons (which have transparent padding inside
-                # the PNG box). Centered within the same icon_size bounding box.
+            if r == 'IXP' or r == 'DU':
+                # Green circle (shared treatment for IXP and DU). Shrunk to ~85%
+                # of icon_size so its visible footprint matches the BPMN PNG icons
+                # (which have transparent padding inside the PNG box).
                 ixp_circle_d = icon_size * 0.85
                 ixp_cx = icon_x + (icon_size - ixp_circle_d) / 2
                 ixp_cy = icon_y + (icon_size - ixp_circle_d) / 2
