@@ -244,7 +244,7 @@ def _draw_plus_circle(slide, cx, cy, diameter, fill_color, cross_color):
 
 
 def _draw_tags(slide, T, data, divider_y):
-    """Render small pill tags (INTERNAL, MAESTRO, EASY PROCESS) just above the divider on the right."""
+    """Render small pill tags (currently just FOR INTERNAL USE ONLY) just above the divider on the right."""
     tags = []
     # Classification flag — only "internal" raises the INTERNAL USE pill.
     # "anonymize" handled separately: customer name swapped for industry-generic
@@ -253,17 +253,6 @@ def _draw_tags(slide, T, data, divider_y):
     if cls == 'internal' or data.get('internal'):
         tags.append(('FOR INTERNAL USE ONLY', T['RED']))
     # Maestro pill is rendered on the solution card now, not in the top-right row.
-    # Easy process — explicit flag OR auto-detect (<=5 steps, no AGENT, no IXP)
-    easy_flag = data.get('easy_process')
-    if easy_flag is None:
-        steps = data.get('steps') or []
-        roles = []
-        for s in steps:
-            if isinstance(s, dict):
-                roles.append(str(s.get('role','')).upper())
-        easy_flag = (0 < len(steps) <= 5) and not any(r in ('AGENT', 'IXP') for r in roles)
-    if easy_flag:
-        tags.append(('EASY PROCESS', T['GREEN']))
 
     if not tags:
         return
