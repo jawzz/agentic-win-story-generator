@@ -659,10 +659,33 @@ def _build_slide(slide, *, theme, data):
                 _chevron(slide, ax, ay, arrow_w, arrow_w, T['TEXT_MUTED'])
                 x += arrow_w + gap_s*2/3
 
-    # Measured outcomes (no caption, orange tiles)
+    # Outcomes header — "Projected outcomes" for POCs (pre-production numbers),
+    # otherwise "Measured outcomes". Detection: explicit override field, OR any
+    # POC / proof-of-concept mention in the title, subtitle, breadcrumb,
+    # problem, or solution text.
+    outcomes_header = (data.get('outcomes_header') or '').strip()
+    if not outcomes_header:
+        _scan = ' '.join(str(x) for x in [
+            data.get('title', ''),
+            data.get('subtitle', ''),
+            data.get('problem_desc', ''),
+            data.get('solution_desc', ''),
+            ' '.join(data.get('breadcrumb', []) or []),
+        ]).lower()
+        _is_poc = any(t in _scan for t in (
+            ' poc ', ' poc.', ' poc,', ' poc:', '(poc)', ' poc"',
+            'poc.', 'proof of concept', 'proof-of-concept',
+            'pre-production', 'pre production',
+            'in discovery', 'discovery phase',
+            'projected outcome', 'projected outcomes',
+        ))
+        if _scan.startswith('poc ') or _scan.endswith(' poc'):
+            _is_poc = True
+        outcomes_header = 'Projected outcomes' if _is_poc else 'Measured outcomes'
+
     oy = cy + ch + 0.10
     _text(slide, 0.5, oy, 8.0, 0.30,
-          'Measured outcomes', size=15, bold=True, color=T['TEXT'])
+          outcomes_header, size=15, bold=True, color=T['TEXT'])
 
     outcomes = data.get('outcomes') or []
     norm_outcomes = []
